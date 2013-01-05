@@ -1,0 +1,4 @@
+hlavičky:
+id;prijmeni;jmeno;narozen;klub;platnost
+
+Formát -> UTF8 -> Uložit

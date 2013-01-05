@@ -1,0 +1,58 @@
+{layout ../@layout.latte}
+
+{block content}
+<div id='content' class='arrangement {include #added_class}'>
+    <div id='left_cont'>
+        <h1>{include #headline}</h1>
+        {include #top_buttons}
+        <div id='trash_container'>
+            <div id='trash'>
+            {foreach $players as $player}
+                <div class='trash_item' id='player_{$player->id}'>
+                    <img class='photo' src='{$player->photo}' alt='{$player->whole_name}' height='50' />
+                    <span class='number'><input type='text' name='number_{$player->id}' value='{$player->cislo_dresu}' maxlength='2' /></span>
+                    <span class='name'>{$player->arrangement_name}</span>
+                    <span class='rc'>{$player->rc}</span>
+                </div>
+            {/foreach}
+            </div>
+        </div>
+    </div>
+    <div id='arrangement_list'>
+        {for $i = 1; $i <= 18; $i++}
+            <div class='arrangement_item' rel='position_{$i}'></div>
+        {/for}
+    </div>
+    <div class='cleaner'></div>
+    <div class='buttons'>
+        {include #button_back}
+        {include #button_next}
+        <button id='{include #erase_button_id}' class='erase_button right' rel='Opravdu chcete smazat tuto soupisku?'><span>Vymazat</span></button>
+        <div class='cleaner'></div>
+    </div>
+    <p class='help'>Pro zařazení hráče na soupisku <strong>chytněte</strong> příslušný box <strong>a přetáhněte</strong> na požadovanou pozici v zápise nebo na box <strong>2x klikněte</strong>. Pro odstranění hráče postupujte obráceně. Hráče lze v zápisu <strong>libovolně posouvat</strong>.</p>
+    {include #help_minula_sestava}
+</div>
+
+<?php
+
+if (!empty($sess_arrangement)) {
+
+    echo "
+<script type='text/javascript'>
+    var arrangement_list = $('#arrangement_list'); // soupiska, kam se hraci pridavaji
+
+    var obj = eval('(" . $sess_arrangement . ")');
+
+    for (var position in obj) {
+        if (obj[position]['id'] != null) {
+            appendItemFromDB(obj[position], arrangement_list);
+        }
+    }
+
+    $('#last_arrangement').addClass('disabled');
+</script>
+    ";
+}
+?>
+{/block}

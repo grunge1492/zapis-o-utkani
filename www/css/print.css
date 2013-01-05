@@ -1,0 +1,168 @@
+body {
+	font: 12pt/1.4 Tahoma, Verdana, Arial, helvetica, sans-serif;
+	color: black;
+	background: none;
+	width: 100%;
+}
+a img { border: none; }
+#ajax-spinner,
+#nette-debug,
+#left_cont,
+#trash_container,
+.buttons,
+#id_squad,
+#footer,
+#content h1,
+#arrangement_list .arrangement_item .photo {
+	display: none !important;
+}
+
+.cleaner {
+    clear: both !important;
+    display: block !important;
+    float: none !important;
+    height: 0 !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+}
+#arrangement_list {
+    padding-top: 242px;
+}
+#arrangement_list .arrangement_item {
+    clear: left;
+    cursor: move;
+    font-family: 'Courier New';
+    font-size: 12px;
+    height: 20.2px;
+    line-height: 20.2px;
+    margin-bottom: 2px;
+    overflow: hidden;
+    width: 318px;
+}
+#arrangement_list .arrangement_item.added {
+    margin-top: 2.2px;
+}
+#arrangement_list .highlighted {
+    background-color: #ddd;
+}
+#arrangement_list .arrangement_item .photo {
+    display: none;
+}
+#arrangement_list .arrangement_item .number,
+#arrangement_list .arrangement_item .name,
+#arrangement_list .arrangement_item .rc {
+    display: block;
+    float: left;
+    height: 100%
+}
+#arrangement_list .arrangement_item .number {
+    padding-right: 7px;
+    width: 23px;
+}
+#arrangement_list .arrangement_item .number input {
+    background-color: transparent;
+    border: 0 none;
+    font-family: 'Courier New';
+    font-size: 12px;
+    text-align: right;
+    width: 23px;
+}
+#arrangement_list .arrangement_item .name {
+    text-transform: uppercase;
+    padding-left: 8px;
+    width: 152px;
+}
+#arrangement_list .arrangement_item .rc {
+    letter-spacing: -0.8px;
+    padding-left: 8px;
+    width: 120px;
+}
+
+
+.added #setup {
+    font-family: 'Courier New';
+    font-size: 12px;
+    height: 105px;
+    padding-top: 21px;
+}
+.added #setup span {
+    display: block;
+    float: left;
+}
+.added #setup input {
+    background-color: transparent;
+    border: 0 none;
+    display: block;
+    font-family: 'Courier New';
+    font-size: 12px;
+    height: 14px;
+    line-height: 14px;
+}
+.added #setup input:focus {
+    background-color: #f1f1f1;
+}
+.added #setup #soutez,
+.added #setup #rocnik {
+    padding-left: 385px;
+}
+.added #setup #soutez input,
+.added #setup #rocnik input {
+    width: 95px;
+}
+.added #setup #kolo {
+    padding-left: 45px;
+}
+.added #setup #kolo input {
+    width: 95px;
+}
+.added #setup #den {
+    padding-left: 25px;
+}
+.added #setup #den input {
+    width: 115px;
+}
+.added #setup #cas1 {
+    padding-left: 24px;
+}
+.added #setup #cas1 input {
+    width: 35px;
+}
+.added #setup #cas2 {
+    padding-left: 8px;
+}
+.added #setup #cas2 input {
+    width: 25px;
+}
+.added #setup #kolo input,
+.added #setup #den input,
+.added #setup #cas1 input {
+    text-align: right;
+}
+.added #setup #squad_inputs {
+    padding: 5px 3px;
+}
+.added #setup #squad_inputs input {
+    font-size: 14px;
+    height: 21px;
+    line-height: 21px;
+    width: 290px;
+}
+.added #setup #squad_inputs #domaci,
+.added #setup #squad_inputs #hoste,
+.added #setup #squad_inputs #stadion {
+    padding: 0 0 4px 70px;
+}
+.added #setup #squad_inputs #stadion {
+    padding-bottom: 0;
+    padding-left: 430px;
+}
+.added #setup #squad_inputs #domaci input,
+.added #setup #squad_inputs #hoste input {
+    font-weight: bold;
+}
+.added #arrangement_list .arrangement_item .number input {
+    display: none;
+}

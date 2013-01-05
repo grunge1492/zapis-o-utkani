@@ -1,0 +1,14 @@
+{layout layout.latte}
+
+{block #added_title}<?php echo BasePresenter::STEP_3_TITLE . " — "; ?>{/block}
+{block #added_class}home{/block}
+{block #headline}Domácí{/block}
+{block #top_buttons}
+<div class='buttons'>
+    <button id='last_arrangement'><span>Minulá sestava</span></button>
+</div>
+{/block}
+{block #button_back}<button id='select_rival' class='back left'><span><?php echo BasePresenter::STEP_2_TITLE; ?></span></button>{/block}
+{block #button_next}<button id='arrangement_away' class='forward right'><span><?php echo BasePresenter::STEP_4_TITLE; ?></span></button>{/block}
+{block #erase_button_id}erase_arrangement{/block}
+{block #help_minula_sestava}<p class='help'>Pomocí tlačítka <strong>Minulá sestava</strong> lze vyvolat nastavení z naposled tisknutého zápisu. Toto tlačítko lze opakovaně použít pouze v případě, že sestavu vymažete stiskem tlačítka <strong>Vymazat</strong>.</p>{/block}

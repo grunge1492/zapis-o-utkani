@@ -1,0 +1,48 @@
+{block #added_title}<?php echo BasePresenter::STEP_2_TITLE . " — "; ?>{/block}
+{block content}
+<div id='content' class='clubselect'>
+    <h1><?php echo BasePresenter::STEP_2_TITLE; ?></h1>
+
+    <div id='rivals'>
+        <div class='rival home'>
+            <div class='name'>
+                <div class='fake_input'>{$squad_title}</div>
+            </div>
+            <div class='badge'>
+                <img src='/images/teams/big_badges/brz.png' alt='Sokol Březník A' />
+            </div>
+        </div>
+<?php
+
+if (!empty($away_team)) {
+    $value = $away_team->title;
+    $badge = $away_team->badge_html;
+    $rel   = " rel='{$away_team->id}'";
+} else {
+    $value = null;
+    $badge = null;
+    $rel   = null;
+}
+?>
+        <div class='rival away'{!$rel}>
+            <div class='name'>
+                <input type='text' name='rival' value='{$value}' />
+            </div>
+            <div class='badge'>{!$badge}</div>
+        </div>
+        <div class='cleaner'></div>
+    </div>
+
+    <div class='search'>
+        <div id='search_selected_item'></div>
+    </div>
+
+    <div class='buttons'>
+        <button href='{link Homepage:}' class='back left confirm' rel='Opravdu chcete smazat všechna nastavení?'><span><?php echo BasePresenter::STEP_1_TITLE; ?></span></button>
+        <button id='arrangement' class='forward right'><span><?php echo BasePresenter::STEP_3_TITLE; ?></span></button>
+        <div class='cleaner'></div>
+    </div>
+    <p class='help'>V pravém boxu bliká kursor. Začněte psát název požadovaného soupeře, vysune se výběr dostupných mužstev. Z kompletní nabídky lze vybírat při zadaní <strong>mezery [Mezerník]</strong>.</p>
+    <p class='help'>Po kliknutí na tlačítko <strong>Start</strong> budou vymazána všechna předchozí nastavení.</p>
+</div>
+{/block}

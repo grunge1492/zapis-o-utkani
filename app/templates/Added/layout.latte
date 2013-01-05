@@ -1,0 +1,100 @@
+{layout ../@layout.latte}
+
+{block content}
+<div id='content' class='arrangement {include #added_class}'>
+    <h1>{include #headline}</h1>
+    <div id='back_side'>
+        <div id='setup'>
+            {foreach $contests as $contest_key => $contest_items}
+            <div class='contest_{$contest_key}s'>
+                <?php
+                    $counter = 0;
+
+                    foreach ($contest_items as $contest_item) {
+                        $counter++;
+
+                        if (empty($sess_variables["contest_{$contest_key}"]) && $counter == 1) {
+                            $checked_first = " checked";
+                        } else {
+                            $checked_first = null;
+                        }
+
+                        if ("contest_{$contest_key}_{$counter}" == $sess_variables["contest_{$contest_key}"]) {
+                            $checked = " checked";
+                        } else {
+                            $checked = null;
+                        }
+                        echo "<div class='contest_$contest_key{$checked}{$checked_first}' id='contest_{$contest_key}_{$counter}'><span>$contest_item</span></div>";
+                    }
+                ?>
+            </div>
+            {/foreach}
+            <span id='soutez'><input type='text' name='soutez' value='{$add_squad_title}' maxlength='10' readonly='readonly' /></span>
+            <span id='kolo'><input type='text' name='kolo' value='{$sess_variables["kolo"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
+            <div class='cleaner'></div>
+            <span id='rocnik'><input type='text' name='rocnik' value='{$add_season_title}' maxlength='9' readonly='readonly' /></span>
+            <span id='den'><input type='text' name='den' value='{$sess_variables["den"]}' maxlength='10' onkeypress='return only_date(event);' /></span>
+            <span id='cas1'><input type='text' name='cas1' value='{$sess_variables["cas1"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
+            <span id='cas2'><input type='text' name='cas2' value='{$sess_variables["cas2"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
+            <span id='pocet_poradatelu'><input type='text' name='pocet_poradatelu' value='{$sess_variables["pocet_poradatelu"]}' maxlength='1' /></span>
+            <div class='cleaner'></div>
+            <div id='squad_inputs'>
+                <span id='domaci'><input type='text' name='domaci' value='Sokol Březník' maxlength='40' readonly='readonly' /></span>
+                <span id='hoste'><input type='text' name='hoste' value='{$away_team}' maxlength='40' readonly='readonly' /></span>
+                <div class='cleaner'></div>
+                <span id='stadion'><input type='text' name='stadion' value='Březník' maxlength='40' readonly='readonly' /></span>
+                <div class='cleaner'></div>
+            </div>
+        </div>
+        <div id='arrangement_list'>
+        {for $i = 1; $i <= 6; $i++}
+            <div class='arrangement_item' rel='position_{$i}'></div>
+        {/for}
+            <div class='arrangement_item hl_poradatel' rel='position_7' title='Odstraňte hlavního pořadatele DVOJKLIKEM'></div>
+        </div>
+        <div id='trash_container'>
+            <div id='trash'>
+            {foreach $players as $player}
+                <div class='trash_item' id='player_{$player->id}'>
+                    <img class='photo' src='{$player->photo}' alt='{$player->whole_name}' height='50' />
+                    <span class='number'><input type='text' name='number_{$player->id}' value='{$player->cislo_dresu}' maxlength='2' /></span>
+                    <span class='name'>{$player->arrangement_name}</span>
+                    <span class='rc'>{$player->rc}</span>
+                </div>
+            {/foreach}
+            </div>
+        </div>
+        <div class='cleaner'></div>
+    </div>
+    <div class='buttons'>
+        {include #button_back}
+        {include #button_next}
+        <button id='{include #erase_button_id}' class='erase_button right' rel='Opravdu chcete smazat tuto soupisku?'><span>Vymazat</span></button>
+        <div class='cleaner'></div>
+    </div>
+    {include #help}
+    <p class='help'>Libovolně lze přepínat mezi typy utkání (nahoře).</p>
+</div>
+
+<?php
+
+if (!empty($sess_arrangement)) {
+
+    echo "
+<script type='text/javascript'>
+    var arrangement_list = $('#arrangement_list'); // soupiska, kam se hraci pridavaji
+
+    var obj = eval('(" . $sess_arrangement . ")');
+
+    for (var position in obj) {
+        if (obj[position]['id'] != null) {
+            appendItemFromDB(obj[position], arrangement_list);
+        }
+    }
+
+    $('#last_arrangement').addClass('disabled');
+</script>
+    ";
+}
+?>
+{/block}

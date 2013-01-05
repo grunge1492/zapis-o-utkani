@@ -1,0 +1,13 @@
+{block #added_title}{/block}
+{block content}
+<div id='content' class='index'>
+<h1>Zápis o utkání</h1>
+<img id='znak-breznik' src='/images/znak-breznik.png' alt='Sokol Březník' />
+<div class='buttons set'>
+{foreach $squads as $id_squad => $squad_titles}
+    <button id='squad_{$id_squad}' class='start_button forward' rel='{$id_squad}'><span>{$squad_titles['button_title']}<span></button>
+{/foreach}
+</div>
+<p class='help'>Vybete jezdno z mužstev kliknutím na příslušné tlačítko.</p>
+</div>
+{/block}

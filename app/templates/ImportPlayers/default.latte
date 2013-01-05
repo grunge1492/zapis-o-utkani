@@ -1,0 +1,14 @@
+{block content}
+<div id='content' class='import'>
+<h1>Import</h1>
+<p>{$done}</p>
+<p><a href='{link Homepage:}' title='Start'>Start</a></p>
+
+<?php
+    if (!empty($report)) {
+        NDebugger::dump($report);
+    }
+?>
+
+</div>
+{/block}
