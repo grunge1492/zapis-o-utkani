@@ -6,6 +6,10 @@ class Arrangement2Presenter extends ArrangementPresenter
         // natazeni hracu hostu
         $this->template->players = $this->getImportPlayers();
 
+        $this->template->away_team = $this->model->getTeam($this->getUserSession('id_away_team'))->fetch();
+
+//         Ndebugger::dump($this->template->away_team);
+
         // natazeni hracu hostu ze sessiony
         if ($players = $this->getUserSession('arrangement_away')) {
             $this->template->sess_arrangement = json_encode($players);

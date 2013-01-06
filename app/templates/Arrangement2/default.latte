@@ -3,7 +3,13 @@
 {block #added_title}<?php echo BasePresenter::STEP_4_TITLE . " — "; ?>{/block}
 {block #added_class}away{/block}
 {block #headline}Hosté{/block}
-{block #top_buttons}{/block}
+{block #top_buttons}
+<div class='away_team_info'>
+    <div class='at_title'>{$away_team->nazev}</div>
+    <div class='at_facr'>{$away_team->id_facr}</div>
+    <div class='at_img'>{!$away_team->badge_html}</div>
+</div>
+{/block}
 {block #button_back}<button id='arrangement_home' class='back left'><span><?php echo BasePresenter::STEP_3_TITLE; ?></span></button>{/block}
 {block #button_next}<button id='added' class='forward right'><span><?php echo BasePresenter::STEP_5_TITLE; ?></span></button>{/block}
 {block #erase_button_id}erase_arrangement2{/block}

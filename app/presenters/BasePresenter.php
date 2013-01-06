@@ -10,13 +10,14 @@ abstract class BasePresenter extends NPresenter
 {
     const U_MAIN_SESSION_KEY = 'u-main-session-key';
 
+    const SEASON   = 55;
+
     const TITLE    = 'Zápis o utkání';
     const AUTHOR   = 'Grunge';
     const VERSION  = 'v1.1';
     const YEARS    = '© 2012-2013';
     const KEYWORDS = 'zapis o utkani, zapis';
 
-    const SEASON           = 54;
     const HOME_TEAM_TITLE  = "Sokol Březník";
     const STADION_TITLE    = "Březník";
     const POCET_PORADATELU = 5;

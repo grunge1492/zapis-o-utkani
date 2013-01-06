@@ -42,7 +42,7 @@ class Added2Presenter extends AddedPresenter
         }
 
         // validace sestavy hostu
-        if ($error_message = $this->playersRestrictions($this->getUserSession('arrangement_away'), " (" . BasePresenter::STEP_4_TITLE . ")")) {
+        if ($error_message = $this->playersRestrictions($this->getUserSession('arrangement_away'), " (" . BasePresenter::STEP_4_TITLE . ")", true)) {
             echo $error_message;
             return false;
         }

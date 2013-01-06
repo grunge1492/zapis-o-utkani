@@ -597,3 +597,26 @@ ul.ui-autocomplete li a.ui-state-hover {
     -ms-user-select: none;
     user-select: none;
 }
+
+.away_team_info {
+    margin: 10px 0;
+    position: relative;
+}
+.away_team_info .at_title {
+    font-size: 130%;
+}
+.away_team_info .at_img {
+    height: 78px;
+    position: absolute;
+    right: 0;
+    top: -88px;
+}
+.away_team_info .at_img img {
+    height: 78px;
+}
+
+.arrangement.home img#home_img {
+    float: right;
+    height: 78px;
+    width: 66px;
+}
