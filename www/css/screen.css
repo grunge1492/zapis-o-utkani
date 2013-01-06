@@ -620,3 +620,7 @@ ul.ui-autocomplete li a.ui-state-hover {
     height: 78px;
     width: 66px;
 }
+
+#final_print {
+    font-weight: bold;
+}

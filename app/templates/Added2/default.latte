@@ -4,7 +4,10 @@
 {block #added_class}added away{/block}
 {block #headline}<?php echo BasePresenter::STEP_6_TITLE; ?>{/block}
 {block #button_back}<button id='added_back' class='back left'><span><?php echo BasePresenter::STEP_5_TITLE; ?></span></button>{/block}
-{block #button_next}<button id='final_print' class='right'><span><?php echo BasePresenter::STEP_7_TITLE; ?></span></button>{/block}
+{block #button_next}
+<button href='{link Homepage:}' class='right confirm' rel='Opravdu chcete smazat všechna nastavení?'><span>Konec</span></button>
+<button id='final_print' class='right'><span><?php echo BasePresenter::STEP_7_TITLE; ?></span></button>
+{/block}
 {block #erase_button_id}erase_added2{/block}
 {block #help}
 <p class='help'>Pro zařazení hráče na soupisku <strong>chytněte</strong> příslušný box <strong>a přetáhněte</strong> na požadovanou pozici v zápise nebo na box <strong>2x klikněte</strong>. Pro odstranění hráče postupujte obráceně. Hráče lze v zápisu <strong>libovolně posouvat</strong></p>

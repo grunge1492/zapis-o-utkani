@@ -65,6 +65,13 @@ class Added2Presenter extends AddedPresenter
             return false;
         }
 
+        // pokud je zaple ignorovani varovani, neukladam sestavu domacich, protoze nezarucim, ze je validni (DAL NEPOKRACUJU)
+        $ignore_warnings = $this->getUserSession('ignore_warnings');
+
+        if (!empty($ignore_warnings) && $ignore_warnings === 'true') {
+            return true;
+        }
+
         // ulozeni sestavy do DB
         if ($error_message = $this->setArrangement(BasePresenter::SEASON, $this->getUserSession('id_squad'), $this->getUserSession('arrangement_home'))) {
         } else {

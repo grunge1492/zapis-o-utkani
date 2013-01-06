@@ -53,10 +53,12 @@ class ArrangementPresenter extends BasePresenter
     // restrikce pro ulozeni sestavy
     protected function playersRestrictions($players, $suffix = null, $no_count_players = false)
     {
-        if (!$this->getUserSession('ignore_warnings')) {
+        $ignore_warnings = $this->getUserSession('ignore_warnings');
+
+        if (!empty($ignore_warnings) && $ignore_warnings === 'true') {
             return false;
         }
-    
+
         $counter = 0;
         $unique_ids = $unique_numbers = array();
 
@@ -96,7 +98,9 @@ class ArrangementPresenter extends BasePresenter
     // restrikce pro ulozeni funkcionaru
     protected function functionarsRestrictions($players, $suffix = null, $hl_poradatel = false)
     {
-        if (!$this->getUserSession('ignore_warnings')) {
+        $ignore_warnings = $this->getUserSession('ignore_warnings');
+
+        if (!empty($ignore_warnings) && $ignore_warnings === 'true') {
             return false;
         }
 
@@ -126,7 +130,9 @@ class ArrangementPresenter extends BasePresenter
     // restrikce pro ulozeni obecneho nastaveni
     protected function variablesRestrictions($variables)
     {
-        if (!$this->getUserSession('ignore_warnings')) {
+        $ignore_warnings = $this->getUserSession('ignore_warnings');
+    
+        if (!empty($ignore_warnings) && $ignore_warnings === 'true') {
             return false;
         }
 
