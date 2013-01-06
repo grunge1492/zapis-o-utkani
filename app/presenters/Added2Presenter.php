@@ -24,7 +24,7 @@ class Added2Presenter extends AddedPresenter
     /**    AJAX               **/
     /***************************/
 
-    // ajaxove volani po stisknuti tlacitka Soupiska - hosté
+    // ajaxove volani po stisknuti tlacitka TISK
     public function actionPrint()
     {
         $this->setView('ajax');
@@ -35,32 +35,37 @@ class Added2Presenter extends AddedPresenter
         // do SESSIONy ulozime promenne
         $this->setVariablesToSession($_POST['variables']);
 
-        // validace sestavy
+        // validace sestavy domaci
         if ($error_message = $this->playersRestrictions($this->getUserSession('arrangement_home'), " (" . BasePresenter::STEP_3_TITLE . ")")) {
             echo $error_message;
             return false;
         }
 
-        if ($error_message = $this->playersRestrictions($this->getUserSession('arrangement_away'), " (" . BasePresenter::STEP_4_TITLE . ")", true)) {
+        // validace sestavy hostu
+        if ($error_message = $this->playersRestrictions($this->getUserSession('arrangement_away'), " (" . BasePresenter::STEP_4_TITLE . ")")) {
             echo $error_message;
             return false;
         }
 
-        if ($error_message = $this->functionarsRestrictions($this->getUserSession('added_home'), " (" . BasePresenter::STEP_5_TITLE . ")", true)) {
+        // validace funkcionaru domaci
+        if ($error_message = $this->functionarsRestrictions($this->getUserSession('added_home'), " (" . BasePresenter::STEP_5_TITLE . ")", true)) { // + hl. poradatel
             echo $error_message;
             return false;
         }
 
+        // validace funkcionaru hostu
         if ($error_message = $this->functionarsRestrictions($this->getUserSession('added_away'), " (" . BasePresenter::STEP_6_TITLE . ")")) {
             echo $error_message;
             return false;
         }
 
+        // validace obecneho nastaveni
         if ($error_message = $this->variablesRestrictions($this->getUserSession('variables'))) {
             echo $error_message;
             return false;
         }
 
+        // ulozeni sestavy do DB
         if ($error_message = $this->setArrangement(BasePresenter::SEASON, $this->getUserSession('id_squad'), $this->getUserSession('arrangement_home'))) {
         } else {
             echo $error_message;

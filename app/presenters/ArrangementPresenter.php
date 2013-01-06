@@ -50,31 +50,13 @@ class ArrangementPresenter extends BasePresenter
         $this->setUserSession('arrangement_home', $players);
     }
 
-    // ajaxove volani po stisknuti tlacitka TISK
-    public function actionAjax()
-    {
-        $players = $_POST['players'];
-
-        // validace sestavy
-        if ($error_message = $this->playersRestrictions($players)) {
-            echo $error_message;
-            return false;
-        }
-
-        if ($error_message = $this->setArrangement(BasePresenter::SEASON, $this->getUserSession('id_squad'), $players)) {
-//             echo $error_message;
-            return true;
-        } else {
-            echo $error_message;
-            return false;
-        }
-
-        return true;
-    }
-
-    // restrikce pro ulozeni
+    // restrikce pro ulozeni sestavy
     protected function playersRestrictions($players, $suffix = null, $no_count_players = false)
     {
+        if (!$this->getUserSession('ignore_warnings')) {
+            return false;
+        }
+    
         $counter = 0;
         $unique_ids = $unique_numbers = array();
 
@@ -111,9 +93,13 @@ class ArrangementPresenter extends BasePresenter
         return false;
     }
 
-    // restrikce pro ulozeni
+    // restrikce pro ulozeni funkcionaru
     protected function functionarsRestrictions($players, $suffix = null, $hl_poradatel = false)
     {
+        if (!$this->getUserSession('ignore_warnings')) {
+            return false;
+        }
+
         $counter = 0;
         $unique_ids = $unique_numbers = array();
 
@@ -137,9 +123,13 @@ class ArrangementPresenter extends BasePresenter
         return false;
     }
 
-    // restrikce pro ulozeni
+    // restrikce pro ulozeni obecneho nastaveni
     protected function variablesRestrictions($variables)
     {
+        if (!$this->getUserSession('ignore_warnings')) {
+            return false;
+        }
+
         foreach ($variables as $key => $value) {
             // validace kola
             if ($key == 'kolo') {

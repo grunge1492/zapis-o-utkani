@@ -576,3 +576,24 @@ ul.ui-autocomplete li a span {
 ul.ui-autocomplete li a.ui-state-hover {
     background-color: #9a9a9a;
 }
+
+.check {
+    margin: 20px 0;
+    padding: 0 20px;
+}
+.check input,
+.check label {
+    display: block;
+    float: left;
+}
+.check input {
+    margin: 6px 10px 0 0;
+}
+.check label {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}

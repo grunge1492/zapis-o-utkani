@@ -8,6 +8,12 @@
     <button id='squad_{$id_squad}' class='start_button forward' rel='{$id_squad}'><span>{$squad_titles['button_title']}<span></button>
 {/foreach}
 </div>
+<div class='check ignore_warnings'>
+    <input type='checkbox' id='ignore_warnings' name='ignore_warnings' />
+    <label for='ignore_warnings'>Ignorovat všechna varování</label>
+    <div class='cleaner'></div>
+</div>
 <p class='help'>Vybete jezdno z mužstev kliknutím na příslušné tlačítko.</p>
+<p class='help'>Zatržením <strong>Ignorovat všechna varování</strong> neproběhne před tiskem validace povinných zadání v zápisu.</p>
 </div>
 {/block}

@@ -22,9 +22,8 @@ class HomepagePresenter extends BasePresenter
     // ajaxove volani po stisknuti tlacitka TISK
     public function actionAjax()
     {
-        $id_squad = $_POST['id_squad'];
-
-        $this->setUserSession('id_squad', $id_squad);
+        $this->setUserSession('id_squad',        $_POST['id_squad']);
+        $this->setUserSession('ignore_warnings', $_POST['ignore_warnings']);
 
         return true;
     }

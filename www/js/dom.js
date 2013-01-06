@@ -82,7 +82,10 @@ $(document).ready(function(){
 
     // homepage
 	$(".start_button").live('click', function() { // udalost po kliku na tl. Muzstva
-        var response = {'id_squad': $(this).attr('rel')} // ID squad
+        var response = {
+            'id_squad'       : $(this).attr('rel'), // ID squad
+            'ignore_warnings': $('input#ignore_warnings').is(':checked') // ignore warnings
+        }
 
         $.post("/homepage/ajax", response, function(theResponse){
             window.location = "/clubselect";
