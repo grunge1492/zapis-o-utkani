@@ -32,10 +32,23 @@ class Model extends NObject
                     a.stav = 'a'
                 AND
                     u.id_facr IS NOT NULL
-                ORDER BY
-                    prijmeni ASC,
-                    jmeno ASC,
-                    suffix DESC
+            UNION
+                SELECT
+                    DISTINCT *{$this->player_columns}
+                FROM
+                    uzivatel u
+                JOIN
+                    funkcionari f
+                ON
+                    u.id = f.id_uzivatel
+                WHERE
+                    f.id_sezona= $id_season
+                AND
+                    u.id_facr IS NOT NULL
+            ORDER BY
+                prijmeni ASC,
+                jmeno ASC,
+                suffix DESC
             "
         )->setRowClass('Player');
     }

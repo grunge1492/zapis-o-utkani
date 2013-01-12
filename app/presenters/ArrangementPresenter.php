@@ -18,7 +18,7 @@ class ArrangementPresenter extends BasePresenter
     {
         if ($id_away_team = $this->getUserSession('id_away_team')) {
             $away_team_facr_id = $this->getTeamFACRID($id_away_team);
-            
+
             if (array_key_exists($id_away_team, $away_team_facr_id)) {
                 return $this->model->getImportPlayers($away_team_facr_id[$id_away_team])->fetchAssoc('id_facr');
             }

@@ -231,12 +231,12 @@ button,
 #trash .trash_item .rc {
     display: none;
 }
+.home #trash .trash_item,
 .away #trash .trash_item {
     font-size: 115%;
     line-height: 30px;
 }
-.away #trash .trash_item .name {
-}
+.home #trash .trash_item .rc,
 .away #trash .trash_item .rc {
     bottom: 3px;
     display: block;
