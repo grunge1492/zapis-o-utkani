@@ -34,6 +34,7 @@ $(document).ready(function(){
         hoverClass: "highlighted",
         drop: function(event, ui) { // udalost po polozeni polozky na soupisku
             $(this).html(ui.draggable.html()); // prenesu text z puvodni polozky do polozky nove
+            $(this).removeClass('empty'); // prenesu text z puvodni polozky do polozky nove
             this.id = $(ui.draggable).attr('id'); // prenesu id z puvodni polozky do polozky nove
             ui.draggable.remove(); // uvodni polozku z kose smazu
             $(this).droppable({ disabled: true });
@@ -59,15 +60,17 @@ $(document).ready(function(){
                 ui.draggable.html('<span class="edit"></span>'); // vynulujeme text puvodni polozky na soupisce
                 ui.draggable.removeAttr('id'); // odstranime parametr ID puvodni polozky na soupisce
                 $(ui.draggable).droppable({ disabled: false });
+                ui.draggable.addClass('empty'); // prenesu text z puvodni polozky do polozky nove
             }
 		}
     });
 
 	arrangement_list.sortable({ // povolime razeni v ramci soupisky
+//         accept: "#arrangement_list > .arrangement_item:not(.empty)", // akceptovane jsou prav jen polozky ze soupisky
         helper: 'clone',
         placeholder: "arrangement_item highlighted",
         revert: true, // polozku neni mozne nikam jinam umistit
-        cancel: ".edit, .erase, .number input, .name input, .rc input"
+        cancel: ".empty, .edit, .erase, .number input, .name input, .rc input"
     });
 
 	$(".trash_item", trash).live('dblclick', function(){ // udalost po dvojkliku na polozku kose (live - kvuli vicerazovemu pouziti)
@@ -357,6 +360,7 @@ function appendItemFromDB(item, arrangement_list)
 
     tmp_item.attr('id', "player_" + id); // prvni prazdne polozce priradime ID puvodni polozky z kose
     tmp_item.html(html); // do prvni prazdne polozky zapiseme text z puvodni polozky z kose
+    tmp_item.removeClass('empty');
     tmp_item.droppable({ disabled: true });
 }
 
@@ -385,6 +389,7 @@ function appendItem(item, arrangement_list)
         $(tmp_item).html($(this).html()); // do prvni prazdne polozky zapiseme text z puvodni polozky z kose
         $(tmp_item).attr('id', $(this).attr('id')); // prvni prazdne polozce priradime ID puvodni polozky z kose
         $(this).remove(); // danou polozku odstranime z kose
+        tmp_item.removeClass('empty');
         tmp_item.droppable({ disabled: true });
     }
 
@@ -423,6 +428,7 @@ function bringItemBack(item, trash)
             });
         item.html('<span class="edit"></span>'); // vynulujeme text puvodni polozky na soupisce
         item.removeAttr('id'); // odstranime parametr ID puvodni polozky na soupisce
+        item.addClass('empty');
         item.droppable({ disabled: false });
     }
 
