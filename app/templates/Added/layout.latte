@@ -48,9 +48,11 @@
         </div>
         <div id='arrangement_list'>
         {for $i = 1; $i <= 6; $i++}
-            <div class='arrangement_item' rel='position_{$i}'></div>
+            <div class='arrangement_item' rel='position_{$i}'>
+                <span class='edit'></span>
+            </div>
         {/for}
-            <div class='arrangement_item hl_poradatel' rel='position_7' title='Odstraňte hlavního pořadatele DVOJKLIKEM'></div>
+        {include #hl_poradatel}
         </div>
         <div id='trash_container'>
             <div id='trash'>
@@ -60,6 +62,7 @@
                     <span class='number'><input type='text' name='number_{$player->id}' value='{$player->cislo_dresu}' maxlength='2' /></span>
                     <span class='name'>{$player->arrangement_name}</span>
                     <span class='rc'>{$player->rc}</span>
+                    <span class='edit disabled'></span>
                 </div>
             {/foreach}
             </div>

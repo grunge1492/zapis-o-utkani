@@ -224,12 +224,16 @@ button,
     width: 260px;
 }
 #trash .trash_item .photo {
+    float: left;
     margin-right: 12px;
     vertical-align: top;
 }
 #trash .trash_item .number,
-#trash .trash_item .rc {
+#trash .trash_item .edit {
     display: none;
+}
+#trash .trash_item .name {
+    display: block;
 }
 .home #trash .trash_item,
 .away #trash .trash_item {
@@ -241,7 +245,7 @@ button,
     bottom: 3px;
     display: block;
     font-size: 80%;
-    left: 57px;
+    left: 51px;
     line-height: 20px;
     position: absolute;
 }
@@ -262,7 +266,7 @@ button,
     line-height: 31.5px;
     margin-bottom: 2px;
     overflow: hidden;
-    width: 415px;
+    width: 506px;
 }
 #arrangement_list .arrangement_item.added {
     margin-top: 3.5px;
@@ -295,15 +299,69 @@ button,
 #arrangement_list .arrangement_item .name {
     text-transform: uppercase;
     padding-left: 8px;
-    width: 242px;
+    width: 241px;
 }
 #arrangement_list .arrangement_item .rc {
     padding-left: 18px;
+    padding-right: 5px;
     width: 110px;
 }
 #id_squad {
     display: none;
 }
+
+#arrangement_list .arrangement_item input {
+    background-color: transparent;
+    border: 0 none;
+    font-family: 'Courier New';
+    font-size: 100%;
+    height: 31.5px;
+    line-height: 31.5px;
+    overflow: hidden;
+    text-transform: uppercase;
+    width: 100%;
+}
+
+
+.arrangement_item .erase,
+.arrangement_item .edit,
+.trash_item .edit {
+    background: transparent url('/images/ico-edit.png') no-repeat center center;
+    cursor: pointer;
+    display: block;
+    height: 31.5px;
+    line-height: 31.5px;
+    overflow: hidden;
+    width: 41px;
+}
+.arrangement_item .edit.disabled,
+.trash_item .edit.disabled {
+    background-image: url('/images/ico-not-save.png');
+    cursor: not-allowed;
+}
+.arrangement_item .edit {
+    float: right;
+    margin-right: 45px;
+}
+.arrangement_item .save {
+    background-image: url('/images/ico-save.png');
+}
+.arrangement_item .edit.and_erase {
+    margin-right: 4px;
+}
+.arrangement_item .erase {
+    background: transparent url('/images/ico-delete.png') no-repeat center center;
+    float: right;
+}
+
+.home #arrangement_list .arrangement_item {
+    width: 420px;
+}
+.home .arrangement_item .edit,
+.home .arrangement_item .erase {
+    display: none;
+}
+
 
 .added #back_side {
     background: transparent url('/images/zapis-back.jpg') no-repeat left 20px;
@@ -510,6 +568,39 @@ button,
 .added.away #arrangement_list .arrangement_item.hl_poradatel {
     visibility: hidden;
 }
+.added.away #back_side {
+    width: 944px;
+}
+.added.away #arrangement_list,
+.added.away #arrangement_list .arrangement_item {
+    width: 437px;
+}
+.added.away .arrangement_item .erase,
+.added.away .arrangement_item .edit,
+.added.away .trash_item .edit {
+    background-size: 100%;
+    height: 22px;
+    line-height: 22px;
+    width: 22px;
+}
+.added.away .arrangement_item .edit.disabled,
+.added.away .trash_item .edit.disabled {
+}
+.added.away .arrangement_item .edit {
+    margin-right: 26px;
+}
+.added.away .arrangement_item .edit.and_erase {
+    margin-right: 4px;
+}
+.added.away #arrangement_list .arrangement_item .rc {
+    padding-right: 12px;
+}
+.added.away #arrangement_list .arrangement_item input {
+    height: 22px;
+    line-height: 22px;
+}
+
+
 
 #rivals .rival {
     background-color: #ededed;

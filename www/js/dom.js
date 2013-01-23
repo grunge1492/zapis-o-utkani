@@ -18,11 +18,10 @@ $(document).ready(function(){
     var arrangement_list = $('#arrangement_list'); // soupiska, kam se hraci pridavaji
 
     // zachovani cisla u hrace i pri premistovani
-    $(".arrangement_item input").live('focusout', function(){
+    $(".arrangement_item .number input").live('focusout', function(){
         $(this).attr('value', this.value);
     });
 
-    // zachovani cisla u hrace i pri premistovani
     $(".arrangement_item:nth-child(12)").addClass("added");
 
 	$(".trash_item", trash).draggable({ // polozky kose umoznime chytit mysi
@@ -42,7 +41,7 @@ $(document).ready(function(){
     });
 
 	trash.droppable({ // do kose povolime pretahovat polozky zpet ze soupisky
-        accept: "#arrangement_list > .arrangement_item", // akceptovane jsou prav jen polozky ze soupisky
+        accept: "#arrangement_list > .arrangement_item:not(.anonymous_player)", // akceptovane jsou prav jen polozky ze soupisky
         drop: function(event, ui) { // udalost po polozeni polozky do kose
             var ud_text = ui.draggable.html(); // zjistime, jestli pretahovana polozka obsahuje text (je neprazdna)
 
@@ -57,7 +56,7 @@ $(document).ready(function(){
                         revert: 'invalid' // pokud polozka neni prenesena na soupisku, polozka se dynamicky vraci na sve misto
                     });
 
-                ui.draggable.html(''); // vynulujeme text puvodni polozky na soupisce
+                ui.draggable.html('<span class="edit"></span>'); // vynulujeme text puvodni polozky na soupisce
                 ui.draggable.removeAttr('id'); // odstranime parametr ID puvodni polozky na soupisce
                 $(ui.draggable).droppable({ disabled: false });
             }
@@ -67,7 +66,8 @@ $(document).ready(function(){
 	arrangement_list.sortable({ // povolime razeni v ramci soupisky
         helper: 'clone',
         placeholder: "arrangement_item highlighted",
-        revert: true // polozku neni mozne nikam jinam umistit
+        revert: true, // polozku neni mozne nikam jinam umistit
+        cancel: ".edit, .erase, .number input, .name input, .rc input"
     });
 
 	$(".trash_item", trash).live('dblclick', function(){ // udalost po dvojkliku na polozku kose (live - kvuli vicerazovemu pouziti)
@@ -76,6 +76,18 @@ $(document).ready(function(){
 
 	$(".arrangement_item", arrangement_list).live('dblclick', function(){ // udalost po dvojkliku na polozku soupisky (live - kvuli vicerazovemu pouziti)
         bringItemBack(this, trash);
+    });
+
+	$(".arrangement_item .edit:not(.disabled):not(.save)", arrangement_list).live('click', function(){ // udalost po kliku na edit na soupisce
+        showAnonymousPlayer($(this).parent('.arrangement_item'));
+    });
+
+	$(".arrangement_item .edit.save:not(.disabled)", arrangement_list).live('click', function(){ // udalost po kliku na save na soupisce
+        hideAndSaveAnonymousPlayer($(this).parent('.arrangement_item'));
+    });
+
+	$(".arrangement_item .erase", arrangement_list).live('click', function(){ // udalost po kliku na save na soupisce
+        eraseAnonymousPlayer($(this).parent('.arrangement_item'));
     });
 
 /** TLACITKA **/
@@ -246,6 +258,50 @@ $(document).ready(function(){
 	});
 });
 
+function showAnonymousPlayer(item)
+{
+    var id = $(item).attr('id');
+
+    if ($(item).find('.name').html() != null) {
+        $(item).find('.name').html("<input type='text' value='" + $(item).find('.name').html() + "' maxlength='20' />");
+        $(item).find('.rc').html("<input type='text' value='" + $(item).find('.rc').html() + "' maxlength='8' />");
+    } else {
+        $("<span class='number'><input type='text' value='' maxlength='2' /></span><span class='name'><input type='text' value='' maxlength='20' /></span><span class='rc'><input type='text' value='' maxlength='8' /></span>")
+            .prependTo($(item));
+    }
+
+    $(item).find('.edit').addClass('save').removeClass('and_erase').html('');
+    $(item).find('.erase').remove();
+
+    $(item).addClass('anonymous_player');
+
+
+    $(item).find('.name input').focus().select();
+}
+
+function hideAndSaveAnonymousPlayer(item)
+{
+    saveAnonymousPlayer(item);
+
+    $(item).find('.edit').removeClass('save').addClass('and_erase').html('');
+
+    $("<span class='erase'></span>")
+        .prependTo($(item));
+}
+
+function saveAnonymousPlayer(item)
+{
+    $(item).find('.name').html($(item).find('.name input').val());
+    $(item).find('.rc').html($(item).find('.rc input').val());
+    
+    $(item).attr('id', 'player_anonymous_' + $(item).attr('rel'));
+}
+
+function eraseAnonymousPlayer(item)
+{
+    $(item).attr('id', '');
+    $(item).html('<span class="edit"></span>');
+}
 
 function click_away(action, response, location)
 {
@@ -272,12 +328,30 @@ function fn_confirm(button)
     return true;
 }
 
+function jsContains(needle, haystack)
+{
+    pos = haystack.indexOf(needle);
+
+    if (pos == -1) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 // prirazeni polozky na soupisku
 function appendItemFromDB(item, arrangement_list)
 {
     var tmp_item = $(".arrangement_item[rel=position_" + item['position'] + "]", arrangement_list);
         html = "<img class='photo' src='" + item['photo'] + "' alt='" + item['whole_name'] + "' height='50' /><span class='number'><input type='text' name='number_" + item['id'] + "' value='" + item['number'] + "' maxlength='2' /></span><span class='name'>" + item['arrangement_name'] + "</span><span class='rc'>" + item['rc'] + "</span>";
         id = item['id'].toString().replace("player_", "");
+
+    if (jsContains('anonymous', id)) {
+        tmp_item.addClass('anonymous_player');
+        html += "<span class='erase'></span><span class='edit and_erase'></span>";
+    } else {
+        html += "<span class='edit disabled'></span>";
+    }
 
     $("#player_" + id).remove();
 
@@ -293,7 +367,7 @@ function appendItem(item, arrangement_list)
 
     var tmp_item = arrangement_list.children(':first'); // vybereme prvni polozku ze soupisky
 
-    while (tmp_item.html() != '') {
+    while (tmp_item.find('.name').html() != null) {
         if (tmp_item.next().is(':last')) { // osetreni posledni polozky
             alert('List je plný!');
             return false;
@@ -322,7 +396,7 @@ function bringItemBack(item, trash)
 {
     item = $(item);
 
-    if (item.text() == '') return false; // pokud vybrana polozka v soupisce neobsahuje zadny text, dale nepokracujeme
+    if (item.text() == '' || item.hasClass('anonymous_player')) return false; // pokud vybrana polozka v soupisce neobsahuje zadny text, dale nepokracujeme
 
     // pokud ma kos nejake polozky
     if (trash.children().length) {
@@ -347,7 +421,7 @@ function bringItemBack(item, trash)
                 helper: 'clone',
                 revert: 'invalid' // pokud polozka neni prenesena na soupisku, polozka se dynamicky vraci na sve misto
             });
-        item.html(''); // vynulujeme text puvodni polozky na soupisce
+        item.html('<span class="edit"></span>'); // vynulujeme text puvodni polozky na soupisce
         item.removeAttr('id'); // odstranime parametr ID puvodni polozky na soupisce
         item.droppable({ disabled: false });
     }
@@ -408,10 +482,36 @@ console.log(players);
         players_object[i]                     = {};
         players_object[i]['id']               = players[i];
         players_object[i]['number']           = $("#" + players[i]).find(".number input").val();
-        players_object[i]['photo']            = $("#" + players[i]).find(".photo").attr('src');
-        players_object[i]['whole_name']       = $("#" + players[i]).find(".photo").attr('alt');
-        players_object[i]['arrangement_name'] = $("#" + players[i]).find(".name").text();
-        players_object[i]['rc']               = $("#" + players[i]).find(".rc").text();
+
+        if ($("#" + players[i]).find(".number input").val() == undefined) {
+            players_object[i]['number'] = '';
+        } else {
+            players_object[i]['number'] = $("#" + players[i]).find(".number input").val();
+        }
+
+        if ($("#" + players[i]).find(".photo").attr('src') == undefined) {
+            players_object[i]['photo'] = null;
+        } else {
+            players_object[i]['photo'] = $("#" + players[i]).find(".photo").attr('src');
+        }
+
+        if ($("#" + players[i]).find(".name").text() == undefined) {
+            players_object[i]['arrangement_name'] = null;
+        } else {
+            players_object[i]['arrangement_name'] = $("#" + players[i]).find(".name").text();
+        }
+
+        if ($("#" + players[i]).find(".photo").attr('alt') == undefined) {
+            players_object[i]['whole_name'] = players_object[i]['arrangement_name'];
+        } else {
+            players_object[i]['whole_name'] = $("#" + players[i]).find(".photo").attr('alt');
+        }
+
+        if ($("#" + players[i]).find(".rc").text() == undefined) {
+            players_object[i]['rc'] = null;
+        } else {
+            players_object[i]['rc'] = $("#" + players[i]).find(".rc").text();
+        }
 
         var position = $("#" + players[i]).attr('rel');
 
@@ -500,6 +600,10 @@ function only_date(e)
 {
     return filter_keys(e, [], '[0-9.]')
 }
+function only_alpha(e)
+{
+    return filter_keys(e, [], '[a-žA-Ž ]')
+}
 
 // graphics
 $(document).ready(function(){
@@ -520,4 +624,12 @@ $(document).ready(function(){
     });
     
     $('#rivals .rival .name input').focus();
+
+    $('.arrangement_item .number input, .arrangement_item .rc input').live('keypress', function(event) {
+        return only_nums(event);
+    });
+
+    $('.arrangement_item .name input').live('keypress', function(event) {
+        return only_alpha(event);
+    });
 });

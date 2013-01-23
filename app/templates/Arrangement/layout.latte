@@ -13,6 +13,7 @@
                     <span class='number'><input type='text' name='number_{$player->id}' value='{$player->cislo_dresu}' maxlength='2' /></span>
                     <span class='name'>{$player->arrangement_name}</span>
                     <span class='rc'>{$player->rc}</span>
+                    <span class='edit disabled'></span>
                 </div>
             {/foreach}
             </div>
@@ -20,7 +21,9 @@
     </div>
     <div id='arrangement_list'>
         {for $i = 1; $i <= 18; $i++}
-            <div class='arrangement_item' rel='position_{$i}'></div>
+            <div class='arrangement_item' rel='position_{$i}'>
+                <span class='edit'></span>
+            </div>
         {/for}
     </div>
     <div class='cleaner'></div>
