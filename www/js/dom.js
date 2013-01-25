@@ -275,6 +275,7 @@ function showAnonymousPlayer(item)
 
     $(item).find('.edit').addClass('save').removeClass('and_erase').html('');
     $(item).find('.erase').remove();
+    $(item).addClass('empty');
 
     $(item).addClass('anonymous_player');
 
@@ -287,6 +288,8 @@ function hideAndSaveAnonymousPlayer(item)
     saveAnonymousPlayer(item);
 
     $(item).find('.edit').removeClass('save').addClass('and_erase').html('');
+
+    $(item).removeClass('empty');
 
     $("<span class='erase'></span>")
         .prependTo($(item));
@@ -304,6 +307,8 @@ function eraseAnonymousPlayer(item)
 {
     $(item).attr('id', '');
     $(item).html('<span class="edit"></span>');
+    $(item).addClass('empty');
+
 }
 
 function click_away(action, response, location)
@@ -357,6 +362,11 @@ function appendItemFromDB(item, arrangement_list)
     }
 
     $("#player_" + id).remove();
+
+
+    if (item['captain'] === 'true' || item['captain'] === 1) {
+        $('.captain_select[rel=position_' + item['position'] + '] input.radio').prop('checked', true);
+    }
 
     tmp_item.attr('id', "player_" + id); // prvni prazdne polozce priradime ID puvodni polozky z kose
     tmp_item.html(html); // do prvni prazdne polozky zapiseme text z puvodni polozky z kose
@@ -483,6 +493,10 @@ function setPlayers(arrangement_list)
         counter = 0;
 console.log(players);
 
+    // kapitan
+    var captain = null;
+    captain = $(".captain_select input.radio:checked").parents('.captain_select').attr('rel');
+
     for (var i in players) {
         counter += 1;
         players_object[i]                     = {};
@@ -517,6 +531,12 @@ console.log(players);
             players_object[i]['rc'] = null;
         } else {
             players_object[i]['rc'] = $("#" + players[i]).find(".rc").text();
+        }
+
+        if ($("#" + players[i]).attr('rel') == captain) {
+            players_object[i]['captain'] = true;
+        } else {
+            players_object[i]['captain'] = false;
         }
 
         var position = $("#" + players[i]).attr('rel');

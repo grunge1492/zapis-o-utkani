@@ -266,7 +266,7 @@ button,
 }
 #arrangement_list .arrangement_item {
     clear: left;
-    cursor: move;
+    cursor: default;
     font-family: 'Courier New';
     height: 31.5px;
     line-height: 31.5px;
@@ -279,6 +279,9 @@ button,
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+#arrangement_list .arrangement_item:not(.empty) {
+    cursor: move;
 }
 #arrangement_list .arrangement_item.added {
     margin-top: 3.5px;
@@ -726,4 +729,24 @@ ul.ui-autocomplete li a.ui-state-hover {
 
 #final_print {
     font-weight: bold;
+}
+
+#captain_select {
+    height: 400px;
+    position: absolute;
+    right: 5px;
+    top: 140px;
+    width: 50px;
+}
+#captain_select .captain_select {
+    height: 31.5px;
+    margin-bottom: 2px;
+}
+#captain_select .captain_select label {
+    display: block;
+    height: 28.5px;
+    padding-top: 3px;
+    text-align: center;
+}
+#captain_select .captain_select input.radio {
 }

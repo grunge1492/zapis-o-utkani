@@ -86,15 +86,16 @@ class Model extends NObject
     {
         $player_id     = empty($player['id'])     ? 'NULL' : str_replace('_', '', mb_strstr($player['id'], '_'));
         $player_number = empty($player['number']) ? 'NULL' : $player['number'];
+        $captain       = ($player['captain'] == 'true') ? '1' : '0';
         $position     += 1;
 
         return dibi::query(
             "
                 INSERT INTO
                     zapisy_players
-                    (id_arrangement, id_player, position, number)
+                    (id_arrangement, id_player, position, number, captain)
                 VALUES
-                    ($id_arrangement, $player_id, $position, $player_number)
+                    ($id_arrangement, $player_id, $position, $player_number, $captain)
             "
         );
     }
@@ -119,7 +120,7 @@ class Model extends NObject
             if ($players = dibi::query(
             "
                 SELECT
-                    u.id_facr, u.datum_narozeni, z.position, z.id_player, z.number{$this->player_columns}
+                    u.id_facr, u.datum_narozeni, z.position, z.id_player, z.number, z.captain{$this->player_columns}
                 FROM
                     zapisy_players z
                 LEFT JOIN

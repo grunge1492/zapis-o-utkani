@@ -119,6 +119,9 @@ class PDFPresenter extends Added2Presenter
         $this->PDFPlayers1($pdf, $session['arrangement_home']);
         $this->PDFPlayers2($pdf, $session['arrangement_away']);
 
+        $this->PDFCaptain1($pdf, $session['arrangement_home']);
+        $this->PDFCaptain2($pdf, $session['arrangement_away']);
+
         /** PAGE 2 **/
         // Add a page
         // This method has several options, check the source code documentation for more information.
@@ -270,6 +273,49 @@ class PDFPresenter extends Added2Presenter
         ";
 
         $this->w($pdf, $html, 169, 12.5);
+    }
+
+    private function PDFCaptain(&$pdf, $players, $away = false)
+    {
+        if (empty($players)) return false;
+
+        $position = null;
+
+        foreach ($players as $player) {
+            if ($player['captain'] == 'true') {
+                $position = $player['position'];
+                break;
+            }
+        }
+
+        $top = 65.7 + ($position * 5.86);
+
+        // Set font
+        $this->wFont($pdf);
+
+        if ($away) {
+            $captain_suffix = "_2";
+            $left = 205;
+        } else {
+            $captain_suffix = "_1";
+            $left = 4;
+        }
+
+        $html = "
+            <div id='captain$captain_suffix'>K</div>
+        ";
+
+        $this->w($pdf, $html, $left, $top);
+    }
+
+    private function PDFCaptain1(&$pdf, $players)
+    {
+        $this->PDFCaptain($pdf, $players);
+    }
+
+    private function PDFCaptain2(&$pdf, $players)
+    {
+        $this->PDFCaptain($pdf, $players, true);
     }
 
     private function PDFRocnik(&$pdf, $text = null)

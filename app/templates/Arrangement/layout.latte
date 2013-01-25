@@ -27,6 +27,13 @@
         {/for}
     </div>
     <div class='cleaner'></div>
+    <div id='captain_select'>
+        {for $i = 1; $i <= 11; $i++}
+            <div class='captain_select' rel='position_{$i}'>
+                <label for='pos_{$i}'><input class='radio' type='radio' name='captain' id='pos_{$i}' /></label>
+            </div>
+        {/for}
+    </div>
     <div class='buttons'>
         {include #button_back}
         {include #button_next}
