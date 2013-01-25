@@ -1,266 +1,17 @@
-$(document).ready(function(){
-    $('button').click(function(){
-        var alert= '';
-        var href  = $(this).attr('href');
+// obecna funkce pro smerove tlacitko
+function click_away(action, response, location)
+{
+    $.post("/" + action + "/clickaway", response, function(theResponse){
 
-        if ($(this).hasClass('confirm')) {
-            if (!fn_confirm($(this))) {
-                return false;
-            }
-        }
-
-        if (href != '' && href != undefined) {
-            window.location = href;
-        }
-    });
-
-    var trash            = $('#trash'); // kos, z ktereho se hraci vybiraji
-    var arrangement_list = $('#arrangement_list'); // soupiska, kam se hraci pridavaji
-
-    // zachovani cisla u hrace i pri premistovani
-    $(".arrangement_item .number input").live('focusout', function(){
-        $(this).attr('value', this.value);
-    });
-
-    $(".arrangement_item:nth-child(12)").addClass("added");
-
-	$(".trash_item", trash).draggable({ // polozky kose umoznime chytit mysi
-        helper: 'clone',
-        revert: 'invalid' // pokud polozka neni prenesena na soupisku, polozka se dynamicky vraci na sve misto
-    });
-
-	$(".arrangement_item", arrangement_list).droppable({ // do soupisky povolime pretahovat polozky z kose
-        accept: "#trash > .trash_item", // akceptovane jsou prave jen polozky z kose
-        hoverClass: "highlighted",
-        drop: function(event, ui) { // udalost po polozeni polozky na soupisku
-            $(this).html(ui.draggable.html()); // prenesu text z puvodni polozky do polozky nove
-            $(this).removeClass('empty'); // prenesu text z puvodni polozky do polozky nove
-            this.id = $(ui.draggable).attr('id'); // prenesu id z puvodni polozky do polozky nove
-            ui.draggable.remove(); // uvodni polozku z kose smazu
-            $(this).droppable({ disabled: true });
-		}
-    });
-
-	trash.droppable({ // do kose povolime pretahovat polozky zpet ze soupisky
-        accept: "#arrangement_list > .arrangement_item:not(.anonymous_player)", // akceptovane jsou prav jen polozky ze soupisky
-        drop: function(event, ui) { // udalost po polozeni polozky do kose
-            var ud_text = ui.draggable.html(); // zjistime, jestli pretahovana polozka obsahuje text (je neprazdna)
-
-            if (ud_text != '') { // pokud je pretahovana polozka neprazdna, prejdeme na samotne polozeni polozky do kose
-                $("<div></div>") // vytvorime novou prazdnou polozku
-                    .addClass('trash_item') // priradime ji tridu kose
-                    .attr('id', ui.draggable.attr('id')) // priradime ji id puvodni polozky na soupisce
-                    .html(ud_text) // vlozime do ni puvodni text polozky na soupisce
-                    .prependTo(trash) // tuto polozku pridame do kose na konec
-                    .draggable({ // polozku nastavime opet jako pretahovatelnou (dulezite - bez toho je to pouze jednorazova akce)
-                        helper: 'clone',
-                        revert: 'invalid' // pokud polozka neni prenesena na soupisku, polozka se dynamicky vraci na sve misto
-                    });
-
-                ui.draggable.html('<span class="edit"></span>'); // vynulujeme text puvodni polozky na soupisce
-                ui.draggable.removeAttr('id'); // odstranime parametr ID puvodni polozky na soupisce
-                $(ui.draggable).droppable({ disabled: false });
-                ui.draggable.addClass('empty'); // prenesu text z puvodni polozky do polozky nove
-            }
-		}
-    });
-
-	arrangement_list.sortable({ // povolime razeni v ramci soupisky
-//         accept: "#arrangement_list > .arrangement_item:not(.empty)", // akceptovane jsou prav jen polozky ze soupisky
-        helper: 'clone',
-        placeholder: "arrangement_item highlighted",
-        revert: true, // polozku neni mozne nikam jinam umistit
-        cancel: ".empty, .edit, .erase, .number input, .name input, .rc input"
-    });
-
-	$(".trash_item", trash).live('dblclick', function(){ // udalost po dvojkliku na polozku kose (live - kvuli vicerazovemu pouziti)
-        appendItem(this, arrangement_list);
-    });
-
-	$(".arrangement_item", arrangement_list).live('dblclick', function(){ // udalost po dvojkliku na polozku soupisky (live - kvuli vicerazovemu pouziti)
-        bringItemBack(this, trash);
-    });
-
-	$(".arrangement_item .edit:not(.disabled):not(.save)", arrangement_list).live('click', function(){ // udalost po kliku na edit na soupisce
-        showAnonymousPlayer($(this).parent('.arrangement_item'));
-    });
-
-	$(".arrangement_item .edit.save:not(.disabled)", arrangement_list).live('click', function(){ // udalost po kliku na save na soupisce
-        hideAndSaveAnonymousPlayer($(this).parent('.arrangement_item'));
-    });
-
-	$(".arrangement_item .erase", arrangement_list).live('click', function(){ // udalost po kliku na save na soupisce
-        eraseAnonymousPlayer($(this).parent('.arrangement_item'));
-    });
-
-/** TLACITKA **/
-
-    // homepage
-	$(".start_button").live('click', function() { // udalost po kliku na tl. Muzstva
-        var response = {
-            'id_squad'       : $(this).attr('rel'), // ID squad
-            'ignore_warnings': $('input#ignore_warnings').is(':checked') // ignore warnings
-        }
-
-        $.post("/homepage/ajax", response, function(theResponse){
-            window.location = "/clubselect";
-        });
-    });
-
-    // clubselect - soupiska domaci
-	$("#arrangement").live('click', function() {
-        if ($('#rivals .away').attr('rel') == undefined) {
-            alert("Nebyl vybrán soupeř!");
-            return false;
+        if (myIsString(theResponse)) {
+            alert(theResponse);
         } else {
-            var response = {'id_away_team': $('#rivals .away').attr('rel')} // ID away tymu
-
-            $.post("/clubselect/ajax", response, function(theResponse){
-                window.location = "/arrangement";
-            });
+            window.location = location;
         }
     });
+}
 
-    // arrangement - soupiska hoste
-	$("#arrangement_away").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        click_away("arrangement", response, "/arrangement2");
-    });
-
-    // arrangement - vyber soupere
-	$("#select_rival").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        click_away("arrangement", response, "/clubselect");
-    });
-
-    // arrangement2 - zadni strana
-	$("#added").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        click_away("arrangement2", response, "/added");
-    });
-
-    // arrangement2 - soupiska domaci
-	$("#arrangement_home").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        click_away("arrangement2", response, "/arrangement");
-    });
-
-    // added - hoste
-	$("#added2").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        // promenne
-        response['variables'] = setSetupVariables();
-
-        click_away("added", response, "/added2");
-    });
-
-    // added - soupiska hoste
-	$("#select_rival_back").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        // promenne
-        response['variables'] = setSetupVariables();
-
-        click_away("added", response, "/arrangement2");
-    });
-
-    // added2 - doplnujici udaje domaci
-	$("#added_back").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        // promenne
-        response['variables'] = setSetupVariables();
-
-        click_away("added2", response, "/added");
-    });
-
-    // added2 - tisk
-	$("#final_print").live('click', function() {
-        var response = setPlayers(arrangement_list);
-
-        // promenne
-        response['variables'] = setSetupVariables();
-
-        $.post("/added2/print", response, function(theResponse){
-            if (myIsString(theResponse)) {
-                alert(theResponse);
-            } else {
-                window.location = "/pdf";
-            }
-        });
-    });
-
-    // minulá sestava
-	$("#last_arrangement:not(.disabled)").live('click', function() { // udalost po kliku na tl. Minulá sestava
-        var response = {};
-
-        $.post("/arrangement/lastarrangement", response, function(theResponse){
-            if (theResponse == '') {
-                alert("Pro toto mužstvo v této sezóně ještě nebyla uložena žádná sestava.");
-            } else {
-                var obj = eval('(' + theResponse + ')');
-
-                for (var position in obj) {
-                    if (obj[position]['id'] != null) {
-                        appendItemFromDB(obj[position], arrangement_list);
-                    }
-                }
-
-                $("#last_arrangement").addClass('disabled');
-            }
-        });
-    });
-
-    // vymazat
-	$(".erase_button").click(function(){ // udalost po kliku na tl. Vymazat
-        if (!fn_confirm($(this))) {
-            return false;
-        }
-
-        var response = {'erase_id': $(this).attr('id')};
-
-        $.post("/arrangement/eraseArrangement", response, function(theResponse){
-            window.location = self.location;
-        });
-    });
-
-/* autocomplete */
-	$(function() {
-		$("#rivals .away input").autocomplete({
-        	source: function( request, response ) {
-                $.ajax({
-                    url: "/livesearch",
-                    data: {
-                        table: 'tymy',
-                        searched_phrase: request.term
-                    },
-                    success: function( data ) {
-                        response( $.map( data, function( item ) {
-                            return {
-                                img: item.badge_html,
-                                label: item.label,
-                                value: item.title,
-                                id: item.id
-                            }
-                        }));
-                    }
-                });
-            },
-            html: true,
-
-            select: function( event, ui ) {
-                $('#rivals .away .badge').html(ui.item.img);
-                $('#rivals .away').attr('rel', ui.item.id);
-            }
-		});
-	});
-});
-
+// udalost po kliku na edit na soupisce
 function showAnonymousPlayer(item)
 {
     var id = $(item).attr('id');
@@ -283,10 +34,13 @@ function showAnonymousPlayer(item)
     $(item).find('.name input').focus().select();
 }
 
+// udalost po kliku na save na soupisce
 function hideAndSaveAnonymousPlayer(item)
 {
-    saveAnonymousPlayer(item);
+    $(item).find('.name').html($(item).find('.name input').val());
+    $(item).find('.rc').html($(item).find('.rc input').val());
 
+    $(item).attr('id', 'player_anonymous_' + $(item).attr('rel'));
     $(item).find('.edit').removeClass('save').addClass('and_erase').html('');
 
     $(item).removeClass('empty');
@@ -295,59 +49,15 @@ function hideAndSaveAnonymousPlayer(item)
         .prependTo($(item));
 }
 
-function saveAnonymousPlayer(item)
-{
-    $(item).find('.name').html($(item).find('.name input').val());
-    $(item).find('.rc').html($(item).find('.rc input').val());
-    
-    $(item).attr('id', 'player_anonymous_' + $(item).attr('rel'));
-}
-
+// udalost po kliku na vymazat na soupisce
 function eraseAnonymousPlayer(item)
 {
     $(item).attr('id', '');
     $(item).html('<span class="edit"></span>');
     $(item).addClass('empty');
-
 }
 
-function click_away(action, response, location)
-{
-    $.post("/" + action + "/clickaway", response, function(theResponse){
-
-        if (myIsString(theResponse)) {
-            alert(theResponse);
-        } else {
-            window.location = location;
-        }
-    });
-}
-
-
-// vyvolani dialogu
-function fn_confirm(button)
-{
-    alert = button.attr('rel');
-
-    if (!window.confirm(alert)) {
-        return false;
-    }
-    
-    return true;
-}
-
-function jsContains(needle, haystack)
-{
-    pos = haystack.indexOf(needle);
-
-    if (pos == -1) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-// prirazeni polozky na soupisku
+// prirazeni polozky na soupisku z databaze, pri prechodu mezi strankami a pri vyvolani posledni sestavy
 function appendItemFromDB(item, arrangement_list)
 {
     var tmp_item = $(".arrangement_item[rel=position_" + item['position'] + "]", arrangement_list);
@@ -374,7 +84,7 @@ function appendItemFromDB(item, arrangement_list)
     tmp_item.droppable({ disabled: true });
 }
 
-// prirazeni polozky na soupisku
+// udalost po dvojkliku na polozku kose (live - kvuli vicerazovemu pouziti)
 function appendItem(item, arrangement_list)
 {
     item = $(item);
@@ -406,7 +116,7 @@ function appendItem(item, arrangement_list)
     animateToPosition(item, position_left, position_top, completeFunction); // spustime animaci z patricnymi parametry
 }
 
-// vraceni polozky ze soupisky zpet do kose
+// udalost po dvojkliku na polozku soupisky (live - kvuli vicerazovemu pouziti)
 function bringItemBack(item, trash)
 {
     item = $(item);
@@ -480,18 +190,13 @@ function setSetupVariables()
     };
 }
 
-
 // ulozi hrace ze soupisky do objektu pro AJAX
 function setPlayers(arrangement_list)
 {
-//
-// console.log(arrangement_list);
-
     var players_object = {};
         players = arrangement_list.sortable("toArray");
         response = {};
         counter = 0;
-console.log(players);
 
     // kapitan
     var captain = null;
@@ -556,6 +261,30 @@ function myIsString(input){
     return typeof(input) == 'string' && isNaN(input);
 }
 
+// vyvolani dialogu
+function fn_confirm(button)
+{
+    alert = button.attr('rel');
+
+    if (!window.confirm(alert)) {
+        return false;
+    }
+
+    return true;
+}
+
+// funkce na nalezeni podretezce v retezci
+function jsContains(needle, haystack)
+{
+    pos = haystack.indexOf(needle);
+
+    if (pos == -1) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 /**
  * Funkce filtruje ovladaci/systemove a normalni klavesy.
  *
@@ -618,22 +347,300 @@ function filter_keys(e, ctrl, keys)
         return re.test(String.fromCharCode(code))
     }
 }
+
+// filtrace pouze pro cisla
 function only_nums(e)
 {
     return filter_keys(e, [], '[0-9\-]')
 }
+
+// filtrace pouze pro datum
 function only_date(e)
 {
     return filter_keys(e, [], '[0-9.]')
 }
+
+// filtrace pouze pro pismena (slova)
 function only_alpha(e)
 {
     return filter_keys(e, [], '[a-žA-Ž ]')
 }
 
-// graphics
+
+// READY
 $(document).ready(function(){
-    // zatrhavani
+    var trash            = $('#trash'); // kos, z ktereho se hraci vybiraji
+    var arrangement_list = $('#arrangement_list'); // soupiska, kam se hraci pridavaji
+
+    // zachovani cisla u hrace i pri premistovani
+    $(".arrangement_item .number input").live('focusout', function(){
+        $(this).attr('value', this.value);
+    });
+
+    // rozdeleni soupisky (zakladni sestava - nahradnici - vetsi mezera)
+    $(".arrangement_item:nth-child(12)").addClass("added");
+
+    // polozky kose umoznime chytit mysi
+	$(".trash_item", trash).draggable({
+        helper: 'clone', // polozka se naklonuje (jde videt 2x)
+        revert: 'invalid' // pokud polozka neni prenesena na soupisku, polozka se dynamicky vraci na sve misto
+    });
+
+    // do soupisky povolime pretahovat polozky z kose
+	$(".arrangement_item", arrangement_list).droppable({
+        accept: "#trash > .trash_item", // akceptovane jsou prave jen polozky z kose
+        hoverClass: "highlighted", // trida pri presouvani
+        drop: function(event, ui) { // udalost po polozeni polozky na soupisku
+            $(this).html(ui.draggable.html()); // prenesu text z puvodni polozky do polozky nove
+            $(this).removeClass('empty'); // prenesu text z puvodni polozky do polozky nove
+            this.id = $(ui.draggable).attr('id'); // prenesu id z puvodni polozky do polozky nove
+            ui.draggable.remove(); // uvodni polozku z kose smazu
+            $(this).droppable({ disabled: true }); // do polozky uz nelze ukladat
+		}
+    });
+
+    // do kose povolime pretahovat polozky zpet ze soupisky
+ 	trash.droppable({
+        accept: "#arrangement_list > .arrangement_item:not(.anonymous_player)", // akceptovane jsou prav jen polozky ze soupisky
+        drop: function(event, ui) { // udalost po polozeni polozky do kose
+            var ud_text = ui.draggable.html(); // zjistime, jestli pretahovana polozka obsahuje text (je neprazdna)
+
+            if (ud_text != '') { // pokud je pretahovana polozka neprazdna, prejdeme na samotne polozeni polozky do kose
+                $("<div></div>") // vytvorime novou prazdnou polozku
+                    .addClass('trash_item') // priradime ji tridu kose
+                    .attr('id', ui.draggable.attr('id')) // priradime ji id puvodni polozky na soupisce
+                    .html(ud_text) // vlozime do ni puvodni text polozky na soupisce
+                    .prependTo(trash) // tuto polozku pridame do kose na konec
+                    .draggable({ // polozku nastavime opet jako pretahovatelnou (dulezite - bez toho je to pouze jednorazova akce)
+                        helper: 'clone', // polozka se naklonuje (jde videt 2x)
+                        revert: 'invalid' // pokud polozka neni prenesena na soupisku, polozka se dynamicky vraci na sve misto
+                    });
+
+                ui.draggable.html('<span class="edit"></span>'); // vynulujeme text puvodni polozky na soupisce
+                ui.draggable.removeAttr('id'); // odstranime parametr ID puvodni polozky na soupisce
+                $(ui.draggable).droppable({ disabled: false }); // povolime upustit
+                ui.draggable.addClass('empty'); // prenesu text z puvodni polozky do polozky nove
+            }
+		}
+    });
+
+    // povolime razeni v ramci soupisky
+	arrangement_list.sortable({
+        helper: 'clone', // polozka se naklonuje (jde videt 2x)
+        placeholder: "arrangement_item highlighted", // za co je mozne polozku chytat
+        revert: true, // polozku neni mozne nikam jinam umistit
+        cancel: ".empty, .edit, .erase, .number input, .name input, .rc input" // za co neni mozne polozku chytat
+    });
+
+    // udalost po dvojkliku na polozku kose (live - kvuli vicerazovemu pouziti)
+	$(".trash_item", trash).live('dblclick', function() {
+        appendItem(this, arrangement_list); // prenese polozku na soupisku
+    });
+
+    // udalost po dvojkliku na polozku soupisky (live - kvuli vicerazovemu pouziti)
+	$(".arrangement_item", arrangement_list).live('dblclick', function() {
+        bringItemBack(this, trash); // prenese polozku zpet do kose
+    });
+
+    // udalost po kliku na edit na soupisce
+ 	$(".arrangement_item .edit:not(.disabled):not(.save)", arrangement_list).live('click', function() {
+        showAnonymousPlayer($(this).parent('.arrangement_item'));
+    });
+
+    // udalost po kliku na save na soupisce
+	$(".arrangement_item .edit.save:not(.disabled)", arrangement_list).live('click', function(){
+        hideAndSaveAnonymousPlayer($(this).parent('.arrangement_item'));
+    });
+
+    // udalost po kliku na vymazat na soupisce
+ 	$(".arrangement_item .erase", arrangement_list).live('click', function(){
+        eraseAnonymousPlayer($(this).parent('.arrangement_item'));
+    });
+
+    // kliknuti na button
+    $('button').click(function(){
+        var alert= '';
+        var href  = $(this).attr('href');
+
+        if ($(this).hasClass('confirm')) {
+            if (!fn_confirm($(this))) {
+                return false;
+            }
+        }
+
+        if (href != '' && href != undefined) {
+            window.location = href;
+        }
+    });
+
+    /** SMEROVA TLACITKA **/
+
+    // homepage - start
+	$(".start_button").live('click', function() { // udalost po kliku na tl. Muzstva
+        var response = {
+            'id_squad'       : $(this).attr('rel'), // ID squad
+            'ignore_warnings': $('input#ignore_warnings').is(':checked') // ignore warnings
+        }
+
+        $.post("/homepage/ajax", response, function(theResponse){
+            window.location = "/clubselect";
+        });
+    });
+
+    // clubselect - soupiska domaci
+	$("#arrangement").live('click', function() {
+        if ($('#rivals .away').attr('rel') == undefined) {
+            alert("Nebyl vybrán soupeř!");
+            return false;
+        } else {
+            var response = {'id_away_team': $('#rivals .away').attr('rel')} // ID away tymu
+
+            $.post("/clubselect/ajax", response, function(theResponse){
+                window.location = "/arrangement";
+            });
+        }
+    });
+
+    // arrangement - vyber soupere
+	$("#select_rival").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        click_away("arrangement", response, "/clubselect");
+    });
+
+    // arrangement - soupiska hoste
+	$("#arrangement_away").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        click_away("arrangement", response, "/arrangement2");
+    });
+
+    // arrangement2 - soupiska domaci
+	$("#arrangement_home").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        click_away("arrangement2", response, "/arrangement");
+    });
+
+    // arrangement2 - zadni strana domaci
+	$("#added").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        click_away("arrangement2", response, "/added");
+    });
+
+    // added - soupiska hoste
+	$("#select_rival_back").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        // promenne
+        response['variables'] = setSetupVariables();
+
+        click_away("added", response, "/arrangement2");
+    });
+
+    // added - zadni strana hoste
+	$("#added2").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        // promenne
+        response['variables'] = setSetupVariables();
+
+        click_away("added", response, "/added2");
+    });
+
+    // added2 - zadni strana domaci
+	$("#added_back").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        // promenne
+        response['variables'] = setSetupVariables();
+
+        click_away("added2", response, "/added");
+    });
+
+    // added2 - tisk
+	$("#final_print").live('click', function() {
+        var response = setPlayers(arrangement_list);
+
+        // promenne
+        response['variables'] = setSetupVariables();
+
+        $.post("/added2/print", response, function(theResponse){
+            if (myIsString(theResponse)) {
+                alert(theResponse);
+            } else {
+                window.location = "/pdf";
+            }
+        });
+    });
+
+    // minulá sestava
+	$("#last_arrangement:not(.disabled)").live('click', function() { // udalost po kliku na tl. Minulá sestava
+        var response = {};
+
+        $.post("/arrangement/lastarrangement", response, function(theResponse){
+            if (theResponse == '') {
+                alert("Pro toto mužstvo v této sezóně ještě nebyla uložena žádná sestava.");
+            } else {
+                var obj = eval('(' + theResponse + ')');
+
+                for (var position in obj) {
+                    if (obj[position]['id'] != null) {
+                        appendItemFromDB(obj[position], arrangement_list);
+                    }
+                }
+
+                $("#last_arrangement").addClass('disabled');
+            }
+        });
+    });
+
+    // vymazat
+	$(".erase_button").click(function(){ // udalost po kliku na tl. Vymazat
+        if (!fn_confirm($(this))) {
+            return false;
+        }
+
+        var response = {'erase_id': $(this).attr('id')};
+
+        $.post("/arrangement/eraseArrangement", response, function(theResponse){
+            window.location = self.location;
+        });
+    });
+
+    /* autocomplete - vyber soupere */
+	$(function() {
+		$("#rivals .away input").autocomplete({
+        	source: function( request, response ) {
+                $.ajax({
+                    url: "/livesearch",
+                    data: {
+                        table: 'tymy',
+                        searched_phrase: request.term
+                    },
+                    success: function( data ) {
+                        response( $.map( data, function( item ) {
+                            return {
+                                img: item.badge_html,
+                                label: item.label,
+                                value: item.title,
+                                id: item.id
+                            }
+                        }));
+                    }
+                });
+            },
+            html: true,
+
+            select: function( event, ui ) {
+                $('#rivals .away .badge').html(ui.item.img);
+                $('#rivals .away').attr('rel', ui.item.id);
+            }
+		});
+	});
+
+    // zatrhavani typu zapasu
     $('.contest_levels .contest_level').click(function() {
         $('.contest_levels .contest_level').removeClass('checked');
 
@@ -648,14 +655,18 @@ $(document).ready(function(){
             $(this).addClass('checked');
         }
     });
-    
+
+    // po najeti na stranku se souperi, prideli se focus na vyber soupere
     $('#rivals .rival .name input').focus();
 
+    // do cisla dresu a ID lze zapsat pouze cisla
     $('.arrangement_item .number input, .arrangement_item .rc input').live('keypress', function(event) {
         return only_nums(event);
     });
 
+    // do jmeno lze zapsat pouze pismena a mezeru
     $('.arrangement_item .name input').live('keypress', function(event) {
         return only_alpha(event);
     });
+
 });
