@@ -14,7 +14,7 @@ abstract class BasePresenter extends NPresenter
 
     const TITLE    = 'Zápis o utkání';
     const AUTHOR   = 'Grunge';
-    const VERSION  = 'v1.1';
+    const VERSION  = 'v1.2';
     const YEARS    = '© 2012-2013';
     const KEYWORDS = 'zapis o utkani, zapis';
 

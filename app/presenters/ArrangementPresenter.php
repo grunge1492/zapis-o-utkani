@@ -50,6 +50,17 @@ class ArrangementPresenter extends BasePresenter
         $this->setUserSession('arrangement_home', $players);
     }
 
+    private function array_change_key_case_unicode($arr, $c = CASE_LOWER)
+    {
+        $c = ($c == CASE_LOWER) ? MB_CASE_LOWER : MB_CASE_UPPER;
+
+        foreach ($arr as $k => $v) {
+            $ret[mb_convert_case($k, $c, "UTF-8")] = $v;
+        }
+
+        return $ret;
+    }
+
     // restrikce pro ulozeni sestavy
     protected function playersRestrictions($players, $suffix = null, $no_count_players = false)
     {
@@ -79,7 +90,7 @@ class ArrangementPresenter extends BasePresenter
 
             // ID hrace musi byt unikatni
             if (in_array($player['id'], $unique_ids)) {
-                return "V sestavě nemůžou figorovat duplicitní hráči.$suffix";
+                return "V sestavě nemůžou figurovat duplicitní hráči.$suffix";
             } else {
                 if (!empty($player['id'])) $unique_ids[] = $player['id'];
             }
@@ -91,6 +102,9 @@ class ArrangementPresenter extends BasePresenter
                 if (!empty($player['id'])) $unique_numbers[] = $player['number'];
             }
         }
+
+        // spolecne restrikce
+        if ($hlaska = $this->unifiedRestrictions($players, $suffix)) return $hlaska;
 
         return false;
     }
@@ -105,7 +119,6 @@ class ArrangementPresenter extends BasePresenter
         }
 
         $counter = 0;
-        $unique_ids = $unique_numbers = array();
 
         foreach ($players as $player) {
             $counter++;
@@ -117,13 +130,74 @@ class ArrangementPresenter extends BasePresenter
                 }
             }
 
+            // musi byt zadan hlavni poradatel
             if ($hl_poradatel && $counter == 7) {
                 if (empty($player['id'])) {
                     return "Nebyl zadán Hlavní pořadatel.$suffix";
                 }
             }
         }
+        
+        // spolecne restrikce
+        if ($hlaska = $this->unifiedRestrictions($players, $suffix)) return $hlaska;
 
+        return false;
+    }
+
+    // spolecne restrikce
+    private function unifiedRestrictions($players, $suffix = null)
+    {
+        $unique_players = array();
+
+        foreach ($players as $player) {
+
+            // u kazde zadane osoby musi byt vyplneno jmeno
+            if (!empty($player['id']) && empty($player['arrangement_name'])) {
+                return "Některá jména nejsou vyplněna.$suffix";
+            }
+
+            // u kazde zadane osoby musi byt vyplneno ID
+            if (!empty($player['id']) && empty($player['rc'])) {
+                return "Některá ID nejsou vyplněna.$suffix";
+            }
+
+            // ID musi mit spravny tvar
+            if (!empty($player['rc']) && strlen($player['rc']) != 8) {
+                return "ID nemá správný tvar. [{$player['rc']}]{$suffix}";
+            }
+
+            // jmeno musi mit spravny tvar
+            if (!empty($player['arrangement_name']) && !strpos($player['arrangement_name'], " ")) {
+                return "Jméno nemá správný tvar. [{$player['arrangement_name']}]{$suffix}";
+            }
+
+            // Osoba musi byt unikatni
+            if (!empty($player['rc'])) {
+                if (in_array($player['rc'], $unique_players)) {
+                    $player_whole_name = empty($player['arrangement_name']) ? null : $player['arrangement_name'] . " ";
+                    return "ID nemohou být duplicitní. {$player_whole_name}[{$player['rc']}]{$suffix}";
+                } else {
+                    $unique_players[] = $player['rc'];
+                }
+            }
+
+//             if (!empty($player['arrangement_name']) && !empty($player['rc'])) {
+//                 $unique_players = empty($unique_players) ? $unique_players : $this->array_change_key_case_unicode($unique_players, CASE_UPPER);
+//                 $player_whole_name = mb_strtoupper($player['arrangement_name'], 'UTF-8');
+//
+//                 if (array_key_exists($player_whole_name, $unique_players) && ($player['rc'] == $unique_players[$player_whole_name])) {
+//                     return "Funkcionáři nemohou být duplicitní.$suffix $player_whole_name [{$player['rc']}]";
+//                 } else {
+//                     if (!empty($player['arrangement_name']) && !empty($player['rc'])) $unique_players[$player['arrangement_name']] = $player['rc'];
+//                 }
+//
+//                 // jmeno musi mit spravny tvar
+//                 if (!strpos($player_whole_name, " ")) {
+//                     return "Jméno nemá správný tvar.$suffix [{$player_whole_name}]";
+//                 }
+//             }
+        }
+        
         return false;
     }
 

@@ -72,12 +72,12 @@ class Added2Presenter extends AddedPresenter
             return true;
         }
 
-//         // ulozeni sestavy do DB
-//         if ($error_message = $this->setArrangement(BasePresenter::SEASON, $this->getUserSession('id_squad'), $this->getUserSession('arrangement_home'))) {
-//         } else {
-//             echo $error_message;
-//             return false;
-//         }
+        // ulozeni sestavy do DB
+        if ($error_message = $this->setArrangement(BasePresenter::SEASON, $this->getUserSession('id_squad'), $this->getUserSession('arrangement_home'))) {
+        } else {
+            echo $error_message;
+            return false;
+        }
 
         return true;
     }
