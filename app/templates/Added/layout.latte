@@ -34,8 +34,13 @@
             <div class='cleaner'></div>
             <span id='rocnik'><input type='text' name='rocnik' value='{$add_season_title}' maxlength='9' readonly='readonly' /></span>
             <span id='den'><input type='text' name='den' value='{$sess_variables["den"]}' maxlength='10' onkeypress='return only_date(event);' /></span>
-            <span id='cas1'><input type='text' name='cas1' value='{$sess_variables["cas1"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
-            <span id='cas2'><input type='text' name='cas2' value='{$sess_variables["cas2"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
+<?php
+// cas se neuvadi, utkani muze zacit pozdeji
+// echo "
+//             <span id='cas1'><input type='text' name='cas1' value='{$sess_variables["cas1"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
+//             <span id='cas2'><input type='text' name='cas2' value='{$sess_variables["cas2"]}' maxlength='2' onkeypress='return only_nums(event);' /></span>
+// ";
+?>
             <span id='pocet_poradatelu'><input type='text' name='pocet_poradatelu' value='{$sess_variables["pocet_poradatelu"]}' maxlength='1' /></span>
             <div class='cleaner'></div>
             <div id='squad_inputs'>

@@ -48,7 +48,7 @@ class PDFPresenter extends Added2Presenter
         $pdf->SetCreator(PDF_CREATOR);
         $pdf->SetAuthor(BasePresenter::AUTHOR . " " . BasePresenter::YEARS);
         $pdf->SetTitle(BasePresenter::TITLE . " " . BasePresenter::VERSION);
-        $pdf->SetSubject($session['variables']['home_team_title'] . " — " . $session['variables']['away_team_title'] . " [" . $session['variables']['den'] . " " . $session['variables']['cas1'] . ":" . $session['variables']['cas2'] . "]");
+        $pdf->SetSubject($session['variables']['home_team_title'] . " — " . $session['variables']['away_team_title'] . " [" . $session['variables']['den'] . "]");
         $pdf->SetKeywords(BasePresenter::KEYWORDS);
 
         // set default monospaced font
@@ -113,8 +113,9 @@ class PDFPresenter extends Added2Presenter
         $this->PDFKolo($pdf, ltrim(str_replace(".", null, $session['variables']['kolo']) . ".", "0"));
         $this->PDFRocnik($pdf, $session['variables']['season_title']);
         $this->PDFDen($pdf, $session['variables']['den']);
-        $this->PDFCas1($pdf, $session['variables']['cas1']);
-        $this->PDFCas2($pdf, $session['variables']['cas2']);
+// cas se neuvadi, utkani muze zacit pozdeji
+//         $this->PDFCas1($pdf, $session['variables']['cas1']);
+//         $this->PDFCas2($pdf, $session['variables']['cas2']);
 
         $this->PDFPlayers1($pdf, $session['arrangement_home']);
         $this->PDFPlayers2($pdf, $session['arrangement_away']);

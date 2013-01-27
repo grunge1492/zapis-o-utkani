@@ -184,8 +184,9 @@ function setSetupVariables()
         'contest_type'     : $('.contest_type.checked').attr('id'),
         'kolo'             : $('#kolo input').val(),
         'den'              : $('#den input').val(),
-        'cas1'             : $('#cas1 input').val(),
-        'cas2'             : $('#cas2 input').val(),
+// cas se neuvadi, utkani muze zacit pozdeji
+//         'cas1'             : $('#cas1 input').val(),
+//         'cas2'             : $('#cas2 input').val(),
         'pocet_poradatelu' : $('#pocet_poradatelu input').val()
     };
 }

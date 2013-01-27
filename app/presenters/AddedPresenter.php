@@ -26,8 +26,9 @@ class AddedPresenter extends ArrangementPresenter
             'contest_type',
             'kolo',
             'den',
-            'cas1',
-            'cas2',
+// cas se neuvadi, utkani muze zacit pozdeji
+//             'cas1',
+//             'cas2',
             'pocet_poradatelu',
         );
 
@@ -60,8 +61,8 @@ class AddedPresenter extends ArrangementPresenter
 
         $this->template->variables = array(
             'den'  => Date("d.m.Y"),
-            'cas1' => '15',
-            'cas2' => '30',
+//             'cas1' => '15',
+//             'cas2' => '30',
             'pocet_poradatelu' => BasePresenter::POCET_PORADATELU,
         );
 
