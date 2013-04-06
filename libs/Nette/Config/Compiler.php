@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Config
  */
+
+namespace Nette\Config;
+
+use Nette,
+	Nette\Utils\Validators;
 
 
 
@@ -17,17 +21,16 @@
  *
  * @author     David Grudl
  *
- * @property-read array $extensions
- * @property-read NDIContainerBuilder $containerBuilder
+ * @property-read CompilerExtension[] $extensions
+ * @property-read Nette\DI\ContainerBuilder $containerBuilder
  * @property-read array $config
- * @package Nette\Config
  */
-class NConfigCompiler extends NObject
+class Compiler extends Nette\Object
 {
-	/** @var array of NConfigCompilerExtension */
+	/** @var CompilerExtension[] */
 	private $extensions = array();
 
-	/** @var NDIContainerBuilder */
+	/** @var Nette\DI\ContainerBuilder */
 	private $container;
 
 	/** @var array */
@@ -40,12 +43,12 @@ class NConfigCompiler extends NObject
 
 	/**
 	 * Add custom configurator extension.
-	 * @return NConfigCompiler  provides a fluent interface
+	 * @return Compiler  provides a fluent interface
 	 */
-	public function addExtension($name, NConfigCompilerExtension $extension)
+	public function addExtension($name, CompilerExtension $extension)
 	{
 		if (isset(self::$reserved[$name])) {
-			throw new InvalidArgumentException("Name '$name' is reserved.");
+			throw new Nette\InvalidArgumentException("Name '$name' is reserved.");
 		}
 		$this->extensions[$name] = $extension->setCompiler($this, $name);
 		return $this;
@@ -64,7 +67,7 @@ class NConfigCompiler extends NObject
 
 
 	/**
-	 * @return NDIContainerBuilder
+	 * @return Nette\DI\ContainerBuilder
 	 */
 	public function getContainerBuilder()
 	{
@@ -90,7 +93,7 @@ class NConfigCompiler extends NObject
 	public function compile(array $config, $className, $parentName)
 	{
 		$this->config = $config;
-		$this->container = new NDIContainerBuilder;
+		$this->container = new Nette\DI\ContainerBuilder;
 		$this->processParameters();
 		$this->processExtensions();
 		$this->processServices();
@@ -110,13 +113,13 @@ class NConfigCompiler extends NObject
 
 	public function processExtensions()
 	{
-		if ($extra = array_diff_key($this->config, self::$reserved, $this->extensions)) {
-			$extra = implode("', '", array_keys($extra));
-			throw new InvalidStateException("Found sections '$extra' in configuration, but corresponding extensions are missing.");
+		for ($i = 0; $slice = array_slice($this->extensions, $i, 1); $i++) {
+			reset($slice)->loadConfiguration();
 		}
 
-		foreach ($this->extensions as $name => $extension) {
-			$extension->loadConfiguration();
+		if ($extra = array_diff_key($this->config, self::$reserved, $this->extensions)) {
+			$extra = implode("', '", array_keys($extra));
+			throw new Nette\InvalidStateException("Found sections '$extra' in configuration, but corresponding extensions are missing.");
 		}
 	}
 
@@ -128,7 +131,7 @@ class NConfigCompiler extends NObject
 
 		foreach ($this->extensions as $name => $extension) {
 			$this->container->addDefinition($name)
-				->setClass('NDINestedAccessor', array('@container', $name))
+				->setClass('Nette\DI\NestedAccessor', array('@container', $name))
 				->setAutowired(FALSE);
 
 			if (isset($this->config[$name])) {
@@ -140,7 +143,7 @@ class NConfigCompiler extends NObject
 			$factory = $name . 'Factory';
 			if (!$def->shared && !$def->internal && !$this->container->hasDefinition($factory)) {
 				$this->container->addDefinition($factory)
-					->setClass('NCallback', array('@container', NDIContainer::getMethodName($name, FALSE)))
+					->setClass('Nette\Callback', array('@container', Nette\DI\Container::getMethodName($name, FALSE)))
 					->setAutowired(FALSE)
 					->tags = $def->tags;
 			}
@@ -153,6 +156,7 @@ class NConfigCompiler extends NObject
 	{
 		foreach ($this->extensions as $extension) {
 			$extension->beforeCompile();
+			$this->container->addDependency(Nette\Reflection\ClassType::from($extension)->getFileName());
 		}
 
 		$classes[] = $class = $this->container->generateClass($parentName);
@@ -167,12 +171,15 @@ class NConfigCompiler extends NObject
 		ksort($defs);
 		$list = array_keys($defs);
 		foreach (array_reverse($defs, TRUE) as $name => $def) {
-			if ($def->class === 'NDINestedAccessor' && ($found = preg_grep('#^'.$name.'\.#i', $list))) {
+			if ($def->class === 'Nette\DI\NestedAccessor' && ($found = preg_grep('#^'.$name.'\.#i', $list))) {
 				$list = array_diff($list, $found);
 				$def->class = $className . '_' . preg_replace('#\W+#', '_', $name);
-				$class->documents = preg_replace("#\S+(?= \\$$name$)#", $def->class, $class->documents);
-				$classes[] = $accessor = new NPhpClassType($def->class);
+				$class->documents = preg_replace("#\\S+(?= \\$$name\\z)#", $def->class, $class->documents);
+				$classes[] = $accessor = new Nette\Utils\PhpGenerator\ClassType($def->class);
 				foreach ($found as $item) {
+					if ($defs[$item]->internal) {
+						continue;
+					}
 					$short = substr($item, strlen($name)  + 1);
 					$accessor->addDocument($defs[$item]->shared
 						? "@property {$defs[$item]->class} \$$short"
@@ -194,44 +201,46 @@ class NConfigCompiler extends NObject
 	 * Parses section 'services' from configuration file.
 	 * @return void
 	 */
-	public static function parseServices(NDIContainerBuilder $container, array $config, $namespace = NULL)
+	public static function parseServices(Nette\DI\ContainerBuilder $container, array $config, $namespace = NULL)
 	{
 		$services = isset($config['services']) ? $config['services'] : array();
 		$factories = isset($config['factories']) ? $config['factories'] : array();
-		if ($tmp = array_intersect_key($services, $factories)) {
-			$tmp = implode("', '", array_keys($tmp));
-			throw new NServiceCreationException("It is not allowed to use services and factories with the same names: '$tmp'.");
-		}
+		$all = array_merge($services, $factories);
 
-		$all = $services + $factories;
-		uasort($all, create_function('$a, $b', '
-			return strcmp(NConfigHelpers::isInheriting($a), NConfigHelpers::isInheriting($b));
-		'));
+		uasort($all, function($a, $b) {
+			return strcmp(Helpers::isInheriting($a), Helpers::isInheriting($b));
+		});
 
-		foreach ($all as $name => $def) {
-			$shared = array_key_exists($name, $services);
-			$name = ($namespace ? $namespace . '.' : '') . $name;
+		foreach ($all as $origName => $def) {
+			$shared = array_key_exists($origName, $services);
+			if ((string) (int) $origName === (string) $origName) {
+				$name = (string) (count($container->getDefinitions()) + 1);
+			} elseif ($shared && array_key_exists($origName, $factories)) {
+				throw new Nette\DI\ServiceCreationException("It is not allowed to use services and factories with the same name: '$origName'.");
+			} else {
+				$name = ($namespace ? $namespace . '.' : '') . strtr($origName, '\\', '_');
+			}
 
-			if (($parent = NConfigHelpers::takeParent($def)) && $parent !== $name) {
+			if (($parent = Helpers::takeParent($def)) && $parent !== $name) {
 				$container->removeDefinition($name);
 				$definition = $container->addDefinition($name);
-				if ($parent !== NConfigHelpers::OVERWRITE) {
+				if ($parent !== Helpers::OVERWRITE) {
 					foreach ($container->getDefinition($parent) as $k => $v) {
-						$definition->$k = $v;
+						$definition->$k = unserialize(serialize($v)); // deep clone
 					}
 				}
 			} elseif ($container->hasDefinition($name)) {
 				$definition = $container->getDefinition($name);
 				if ($definition->shared !== $shared) {
-					throw new NServiceCreationException("It is not allowed to use service and factory with the same name '$name'.");
+					throw new Nette\DI\ServiceCreationException("It is not allowed to use service and factory with the same name '$name'.");
 				}
 			} else {
 				$definition = $container->addDefinition($name);
 			}
 			try {
-				self::parseService($definition, $def, $shared);
-			} catch (Exception $e) {
-				throw new NServiceCreationException("Service '$name': " . $e->getMessage());
+				static::parseService($definition, $def, $shared);
+			} catch (\Exception $e) {
+				throw new Nette\DI\ServiceCreationException("Service '$name': " . $e->getMessage(), NULL, $e);
 			}
 		}
 	}
@@ -242,7 +251,7 @@ class NConfigCompiler extends NObject
 	 * Parses single service from configuration file.
 	 * @return void
 	 */
-	public static function parseService(NDIServiceDefinition $definition, $config, $shared = TRUE)
+	public static function parseService(Nette\DI\ServiceDefinition $definition, $config, $shared = TRUE)
 	{
 		if ($config === NULL) {
 			return;
@@ -255,12 +264,12 @@ class NConfigCompiler extends NObject
 			: array('class', 'factory', 'arguments', 'setup', 'autowired', 'tags', 'internal', 'parameters');
 
 		if ($error = array_diff(array_keys($config), $known)) {
-			throw new InvalidStateException("Unknown key '" . implode("', '", $error) . "' in definition of service.");
+			throw new Nette\InvalidStateException("Unknown key '" . implode("', '", $error) . "' in definition of service.");
 		}
 
 		$arguments = array();
 		if (array_key_exists('arguments', $config)) {
-			NValidators::assertField($config, 'arguments', 'array');
+			Validators::assertField($config, 'arguments', 'array');
 			$arguments = self::filterArguments($config['arguments']);
 			$definition->setArguments($arguments);
 		}
@@ -271,8 +280,8 @@ class NConfigCompiler extends NObject
 		}
 
 		if (array_key_exists('class', $config)) {
-			NValidators::assertField($config, 'class', 'string|stdClass|null');
-			if ($config['class'] instanceof stdClass) {
+			Validators::assertField($config, 'class', 'string|stdClass|null');
+			if ($config['class'] instanceof \stdClass) {
 				$definition->setClass($config['class']->value, self::filterArguments($config['class']->attributes));
 			} else {
 				$definition->setClass($config['class'], $arguments);
@@ -280,8 +289,8 @@ class NConfigCompiler extends NObject
 		}
 
 		if (array_key_exists('factory', $config)) {
-			NValidators::assertField($config, 'factory', 'callable|stdClass|null');
-			if ($config['factory'] instanceof stdClass) {
+			Validators::assertField($config, 'factory', 'callable|stdClass|null');
+			if ($config['factory'] instanceof \stdClass) {
 				$definition->setFactory($config['factory']->value, self::filterArguments($config['factory']->attributes));
 			} else {
 				$definition->setFactory($config['factory'], $arguments);
@@ -289,20 +298,15 @@ class NConfigCompiler extends NObject
 		}
 
 		if (isset($config['setup'])) {
-			if (NConfigHelpers::takeParent($config['setup'])) {
+			if (Helpers::takeParent($config['setup'])) {
 				$definition->setup = array();
 			}
-			NValidators::assertField($config, 'setup', 'list');
+			Validators::assertField($config, 'setup', 'list');
 			foreach ($config['setup'] as $id => $setup) {
-				NValidators::assert($setup, 'callable|stdClass', "setup item #$id");
-				if ($setup instanceof stdClass) {
-					NValidators::assert($setup->value, 'callable', "setup item #$id");
-					if (strpos(is_array($setup->value) ? implode('', $setup->value) : $setup->value, '$') === FALSE) {
-						$definition->addSetup($setup->value, self::filterArguments($setup->attributes));
-					} else {
-						NValidators::assert($setup->attributes, 'list:1', "setup arguments for '" . callback($setup->value) . "'");
-						$definition->addSetup($setup->value, $setup->attributes[0]);
-					}
+				Validators::assert($setup, 'callable|stdClass', "setup item #$id");
+				if ($setup instanceof \stdClass) {
+					Validators::assert($setup->value, 'callable', "setup item #$id");
+					$definition->addSetup($setup->value, self::filterArguments($setup->attributes));
 				} else {
 					$definition->addSetup($setup);
 				}
@@ -311,17 +315,17 @@ class NConfigCompiler extends NObject
 
 		$definition->setShared($shared);
 		if (isset($config['parameters'])) {
-			NValidators::assertField($config, 'parameters', 'array');
+			Validators::assertField($config, 'parameters', 'array');
 			$definition->setParameters($config['parameters']);
 		}
 
 		if (isset($config['autowired'])) {
-			NValidators::assertField($config, 'autowired', 'bool');
+			Validators::assertField($config, 'autowired', 'bool');
 			$definition->setAutowired($config['autowired']);
 		}
 
 		if (isset($config['internal'])) {
-			NValidators::assertField($config, 'internal', 'bool');
+			Validators::assertField($config, 'internal', 'bool');
 			$definition->setInternal($config['internal']);
 		}
 
@@ -330,8 +334,8 @@ class NConfigCompiler extends NObject
 		}
 
 		if (isset($config['tags'])) {
-			NValidators::assertField($config, 'tags', 'array');
-			if (NConfigHelpers::takeParent($config['tags'])) {
+			Validators::assertField($config, 'tags', 'array');
+			if (Helpers::takeParent($config['tags'])) {
 				$definition->tags = array();
 			}
 			foreach ($config['tags'] as $tag => $attrs) {
@@ -347,7 +351,7 @@ class NConfigCompiler extends NObject
 
 
 	/**
-	 * Removes ... and replaces entities with NDIStatement.
+	 * Removes ... and replaces entities with Nette\DI\Statement.
 	 * @return array
 	 */
 	public static function filterArguments(array $args)
@@ -355,8 +359,8 @@ class NConfigCompiler extends NObject
 		foreach ($args as $k => $v) {
 			if ($v === '...') {
 				unset($args[$k]);
-			} elseif ($v instanceof stdClass && isset($v->value, $v->attributes)) {
-				$args[$k] = new NDIStatement($v->value, self::filterArguments($v->attributes));
+			} elseif ($v instanceof \stdClass && isset($v->value, $v->attributes)) {
+				$args[$k] = new Nette\DI\Statement($v->value, self::filterArguments($v->attributes));
 			}
 		}
 		return $args;

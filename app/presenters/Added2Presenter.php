@@ -6,7 +6,7 @@ class Added2Presenter extends AddedPresenter
         if ($id_squad = $this->getUserSession('id_squad')) {
             $this->setSetupVariables($id_squad);
         } else {
-            throw new NForbiddenRequestException;
+            throw new ForbiddenRequestException;
         }
 
         // natazeni funkcionaru hostu

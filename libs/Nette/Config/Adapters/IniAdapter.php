@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Config\Adapters
  */
+
+namespace Nette\Config\Adapters;
+
+use Nette,
+	Nette\Config\Helpers;
 
 
 
@@ -16,9 +20,8 @@
  * Reading and generating INI files.
  *
  * @author     David Grudl
- * @package Nette\Config\Adapters
  */
-class NConfigIniAdapter extends NObject implements IConfigAdapter
+class IniAdapter extends Nette\Object implements Nette\Config\IAdapter
 {
 	/** @internal */
 	const INHERITING_SEPARATOR = '<', // child < parent
@@ -31,15 +34,16 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 	 * Reads configuration from INI file.
 	 * @param  string  file name
 	 * @return array
-	 * @throws InvalidStateException
+	 * @throws Nette\InvalidStateException
 	 */
 	public function load($file)
 	{
-		NDebugger::tryError();
+		set_error_handler(function($severity, $message) { // parse_ini_file returns FALSE on failure since PHP 5.2.7
+			restore_error_handler();
+			throw new Nette\InvalidStateException("parse_ini_file(): $message");
+		});
 		$ini = parse_ini_file($file, TRUE);
-		if (NDebugger::catchError($e)) {
-			throw new InvalidStateException('parse_ini_file(): ' . $e->getMessage(), 0, $e);
-		}
+		restore_error_handler();
 
 		$data = array();
 		foreach ($ini as $secName => $secData) {
@@ -56,7 +60,7 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 							if (!isset($cursor[$part]) || is_array($cursor[$part])) {
 								$cursor = & $cursor[$part];
 							} else {
-								throw new InvalidStateException("Invalid key '$key' in section [$secName] in file '$file'.");
+								throw new Nette\InvalidStateException("Invalid key '$key' in section [$secName] in file '$file'.");
 							}
 						}
 						$cursor = $val;
@@ -67,7 +71,7 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 				$parts = explode(self::INHERITING_SEPARATOR, $secName);
 				if (count($parts) > 1) {
 					$secName = trim($parts[0]);
-					$secData[NConfigHelpers::EXTENDS_KEY] = trim($parts[1]);
+					$secData[Helpers::EXTENDS_KEY] = trim($parts[1]);
 				}
 			}
 
@@ -76,12 +80,12 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 				if (!isset($cursor[$part]) || is_array($cursor[$part])) {
 					$cursor = & $cursor[$part];
 				} else {
-					throw new InvalidStateException("Invalid section [$secName] in file '$file'.");
+					throw new Nette\InvalidStateException("Invalid section [$secName] in file '$file'.");
 				}
 			}
 
 			if (is_array($secData) && is_array($cursor)) {
-				$secData = NConfigHelpers::merge($secData, $cursor);
+				$secData = Helpers::merge($secData, $cursor);
 			}
 
 			$cursor = $secData;
@@ -94,7 +98,6 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 
 	/**
 	 * Generates configuration in INI format.
-	 * @param  array
 	 * @return string
 	 */
 	public function dump(array $data)
@@ -106,7 +109,7 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 				self::build($data, $output, '');
 				break;
 			}
-			if ($parent = NConfigHelpers::takeParent($secData)) {
+			if ($parent = Helpers::takeParent($secData)) {
 				$output[] = "[$name " . self::INHERITING_SEPARATOR . " $parent]";
 			} else {
 				$output[] = "[$name]";
@@ -140,7 +143,7 @@ class NConfigIniAdapter extends NObject implements IConfigAdapter
 				$output[] = "$prefix$key = \"$val\"";
 
 			} else {
-				throw new InvalidArgumentException("The '$prefix$key' item must be scalar or array, " . gettype($val) ." given.");
+				throw new Nette\InvalidArgumentException("The '$prefix$key' item must be scalar or array, " . gettype($val) ." given.");
 			}
 		}
 	}

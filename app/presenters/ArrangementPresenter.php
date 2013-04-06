@@ -6,7 +6,7 @@ class ArrangementPresenter extends BasePresenter
         if ($id_squad = $this->getUserSession('id_squad')) {
             $this->template->players = $this->model->getPlayers(BasePresenter::SEASON, $id_squad)->fetchAssoc('id');
         } else {
-            throw new NForbiddenRequestException;
+            throw new ForbiddenRequestException;
         }
 
         if ($players = $this->getUserSession('arrangement_home')) {
@@ -23,7 +23,7 @@ class ArrangementPresenter extends BasePresenter
                 return $this->model->getImportPlayers($away_team_facr_id[$id_away_team])->fetchAssoc('id_facr');
             }
         } else {
-            throw new NForbiddenRequestException;
+            throw new ForbiddenRequestException;
         }
     }
 

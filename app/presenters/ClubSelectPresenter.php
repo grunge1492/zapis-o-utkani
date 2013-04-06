@@ -9,7 +9,7 @@ class ClubSelectPresenter extends BasePresenter
         if (!empty($id_squad) && array_key_exists($id_squad, $this->home_teams)) {
             $this->template->squad_title = $this->home_teams[$id_squad];
         } else {
-            throw new NForbiddenRequestException;
+            throw new ForbiddenRequestException;
         }
 
         if ($id_away_team = $this->getUserSession('id_away_team')) {

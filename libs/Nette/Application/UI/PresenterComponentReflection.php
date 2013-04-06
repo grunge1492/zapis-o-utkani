@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application\UI
  */
+
+namespace Nette\Application\UI;
+
+use Nette,
+	Nette\Application\BadRequestException;
 
 
 
@@ -17,9 +21,8 @@
  *
  * @author     David Grudl
  * @internal
- * @package Nette\Application\UI
  */
-class NPresenterComponentReflection extends NClassReflection
+class PresenterComponentReflection extends Nette\Reflection\ClassType
 {
 	/** @var array getPersistentParams cache */
 	private static $ppCache = array();
@@ -33,6 +36,7 @@ class NPresenterComponentReflection extends NClassReflection
 
 
 	/**
+	 * @param  string|NULL
 	 * @return array of persistent parameters.
 	 */
 	public function getPersistentParams($class = NULL)
@@ -43,10 +47,9 @@ class NPresenterComponentReflection extends NClassReflection
 			return $params;
 		}
 		$params = array();
-		if (is_subclass_of($class, 'NPresenterComponent')) {
-			// $class::getPersistentParams() in PHP 5.3
+		if (is_subclass_of($class, 'Nette\Application\UI\PresenterComponent')) {
 			$defaults = get_class_vars($class);
-			foreach (call_user_func(array($class, 'getPersistentParams'), $class) as $name => $meta) {
+			foreach ($class::getPersistentParams()as $name => $meta) {
 				if (is_string($meta)) {
 					$name = $meta;
 				}
@@ -70,6 +73,7 @@ class NPresenterComponentReflection extends NClassReflection
 
 
 	/**
+	 * @param  string|NULL
 	 * @return array of persistent components.
 	 */
 	public function getPersistentComponents($class = NULL)
@@ -80,9 +84,8 @@ class NPresenterComponentReflection extends NClassReflection
 			return $components;
 		}
 		$components = array();
-		if (is_subclass_of($class, 'NPresenter')) {
-			// $class::getPersistentComponents() in PHP 5.3
-			foreach (call_user_func(array($class, 'getPersistentComponents'), $class) as $name => $meta) {
+		if (is_subclass_of($class, 'Nette\Application\UI\Presenter')) {
+			foreach ($class::getPersistentComponents()as $name => $meta) {
 				if (is_string($meta)) {
 					$name = $meta;
 				}
@@ -107,9 +110,9 @@ class NPresenterComponentReflection extends NClassReflection
 		$cache = & self::$mcCache[strtolower($class . ':' . $method)];
 		if ($cache === NULL) try {
 			$cache = FALSE;
-			$rm = NMethodReflection::from($class, $method);
+			$rm = Nette\Reflection\Method::from($class, $method);
 			$cache = $this->isInstantiable() && $rm->isPublic() && !$rm->isAbstract() && !$rm->isStatic();
-		} catch (ReflectionException $e) {
+		} catch (\ReflectionException $e) {
 		}
 		return $cache;
 	}
@@ -119,43 +122,53 @@ class NPresenterComponentReflection extends NClassReflection
 	/**
 	 * @return array
 	 */
-	public static function combineArgs(ReflectionFunctionAbstract $method, $args)
+	public static function combineArgs(\ReflectionFunctionAbstract $method, $args)
 	{
 		$res = array();
 		$i = 0;
 		foreach ($method->getParameters() as $param) {
 			$name = $param->getName();
-			$def = $param->isDefaultValueAvailable() ? $param->getDefaultValue() : NULL;
-
-			if (!isset($args[$name])) { // NULL treats as none value
-				if ($param->isArray() && !$param->allowsNull()) {
-					$def = (array) $def;
+			if (isset($args[$name])) { // NULLs are ignored
+				$res[$i++] = $args[$name];
+				$type = $param->isArray() ? 'array' : ($param->isDefaultValueAvailable() && $param->isOptional() ? gettype($param->getDefaultValue()) : 'NULL');
+				if (!self::convertType($res[$i-1], $type)) {
+					$mName = $method instanceof \ReflectionMethod ? $method->getDeclaringClass()->getName() . '::' . $method->getName() : $method->getName();
+					throw new BadRequestException("Invalid value for parameter '$name' in method $mName(), expected " . ($type === 'NULL' ? 'scalar' : $type) . ".");
 				}
-				$res[$i++] = $def;
-
 			} else {
-				$val = $args[$name];
-				if ($param->isArray() || is_array($def)) {
-					if (!is_array($val)) {
-						throw new NBadRequestException("Invalid value for parameter '$name', expected array.");
-					}
-				} elseif ($param->getClass() || is_object($val)) {
-					// ignore
-				} else {
-					if (!is_scalar($val)) {
-						throw new NBadRequestException("Invalid value for parameter '$name', expected scalar.");
-					}
-					if ($def !== NULL) {
-						settype($val, gettype($def));
-						if (($val === FALSE ? '0' : (string) $val) !== (string) $args[$name]) {
-							throw new NBadRequestException("Invalid value for parameter '$name', expected ".gettype($def).".");
-						}
-					}
-				}
-				$res[$i++] = $val;
+				$res[$i++] = $param->isDefaultValueAvailable() && $param->isOptional() ? $param->getDefaultValue() : ($param->isArray() ? array() : NULL);
 			}
 		}
 		return $res;
+	}
+
+
+
+	/**
+	 * Non data-loss type conversion.
+	 * @param  mixed
+	 * @param  string
+	 * @return bool
+	 */
+	public static function convertType(& $val, $type)
+	{
+		if ($val === NULL || is_object($val)) {
+			// ignore
+		} elseif ($type === 'array') {
+			if (!is_array($val)) {
+				return FALSE;
+			}
+		} elseif (!is_scalar($val)) {
+			return FALSE;
+
+		} elseif ($type !== 'NULL') {
+			$old = $val = ($val === FALSE ? '0' : (string) $val);
+			settype($val, $type);
+			if ($old !== ($val === FALSE ? '0' : (string) $val)) {
+				return FALSE; // data-loss occurs
+			}
+		}
+		return TRUE;
 	}
 
 }

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application
  */
+
+namespace Nette\Application;
+
+use Nette;
 
 
 
@@ -16,15 +19,13 @@
  * Presenter converts Request to IResponse.
  *
  * @author     David Grudl
- * @package Nette\Application
  */
 interface IPresenter
 {
 
 	/**
-	 * @param  NPresenterRequest
-	 * @return IPresenterResponse
+	 * @return IResponse
 	 */
-	function run(NPresenterRequest $request);
+	function run(Request $request);
 
 }

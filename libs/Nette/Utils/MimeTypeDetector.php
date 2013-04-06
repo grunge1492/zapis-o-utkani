@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Utils
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -16,9 +19,8 @@
  * Mime type detector.
  *
  * @author     David Grudl
- * @package Nette\Utils
  */
-final class NMimeTypeDetector
+final class MimeTypeDetector
 {
 
 	/**
@@ -26,7 +28,7 @@ final class NMimeTypeDetector
 	 */
 	final public function __construct()
 	{
-		throw new NStaticClassException;
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -39,7 +41,7 @@ final class NMimeTypeDetector
 	public static function fromFile($file)
 	{
 		if (!is_file($file)) {
-			throw new FileNotFoundException("File '$file' not found.");
+			throw new Nette\FileNotFoundException("File '$file' not found.");
 		}
 
 		$info = @getimagesize($file); // @ - files smaller than 12 bytes causes read error
@@ -47,13 +49,13 @@ final class NMimeTypeDetector
 			return $info['mime'];
 
 		} elseif (extension_loaded('fileinfo')) {
-			$type = preg_replace('#[\s;].*$#', '', finfo_file(finfo_open(FILEINFO_MIME), $file));
+			$type = preg_replace('#[\s;].*\z#', '', finfo_file(finfo_open(FILEINFO_MIME), $file));
 
 		} elseif (function_exists('mime_content_type')) {
 			$type = mime_content_type($file);
 		}
 
-		return isset($type) && preg_match('#^\S+/\S+$#', $type) ? $type : 'application/octet-stream';
+		return isset($type) && preg_match('#^\S+/\S+\z#', $type) ? $type : 'application/octet-stream';
 	}
 
 

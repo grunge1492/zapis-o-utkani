@@ -4,38 +4,45 @@ class ImportPlayersPresenter extends BasePresenter
 {
     public function renderDefault($table, $searched_phrase = null)
     {
-        // MUZSTVO A
-//         $id_team = 35; // Vycapy
-//         $id_team = 36; // Jaromerice B
-//         $id_team = 44; // Blatnice
-//         $id_team = 46; // Chlístov
-//         $id_team = 47; // Dukovany
-//         $id_team = 48; // Namest B
-//         $id_team = 49; // Vladislav
-//         $id_team = 50; // Trebelovice
-//         $id_team = 51; // M. Budejovice B
-//         $id_team = 53; // Nove Syrovice
-//         $id_team = 54; // Rudikov-Trnava
-//         $id_team = 68; // Mohelno
-//         $id_team = 69; // Okrisky B
+        $squad_ids = array(
+            // MUZSTVO A
+            35 => 'Vycapy',
+            36 => 'Jaromerice B',
+            44 => 'Blatnice',
+            46 => 'Chlístov',
+            47 => 'Dukovany',
+            48 => 'Namest B',
+            49 => 'Vladislav',
+            50 => 'Trebelovice',
+            51 => 'M. Budejovice B',
+            53 => 'Nove Syrovice',
+            54 => 'Rudikov-Trnava',
+            68 => 'Mohelno',
+            69 => 'Okrisky B',
 
-        // MUZSTVO B
-//         $id_team = 57; // Pysel
-//         $id_team = 58; // Rouchovany B
-//         $id_team = 59; // Trebenice B
-//         $id_team = 60; // Konesin B
-//         $id_team = 61; // Kralice
-//         $id_team = 63; // Hodov
-//         $id_team = 70; // Smrk
-//         $id_team = 71; // Rudikov-Trnava B
-//         $id_team = 72; // Dukovany B
-//         $id_team = 73; // Namest C
+            // MUZSTVO B
+            57 => 'Pysel',
+            58 => 'Rouchovany B',
+            59 => 'Trebenice B',
+            60 => 'Konesin B',
+            61 => 'Kralice',
+            63 => 'Hodov',
+            70 => 'Smrk',
+            71 => 'Rudikov-Trnava B',
+            72 => 'Dukovany B',
+            73 => 'Namest C',
+        );
+    
+        $this->template->report = array();
 
-        if ($report = $this->importPlayers($id_team)) {
-            $this->template->done = "Done.";
-            $this->template->report = $report;
-        } else {
-            $this->template->done = "Error.";
+        foreach ($squad_ids as $id_team => $name)
+        {
+            if ($report = $this->importPlayers($id_team)) {
+                $this->template->done = "Done.";
+                $this->template->report = array_merge($this->template->report, $report);
+            } else {
+                $this->template->done = "Error.";
+            }
         }
     }
 
@@ -44,6 +51,9 @@ class ImportPlayersPresenter extends BasePresenter
         $away_team_facr_id = $this->getTeamFACRID($id_team);
 
         if (empty($away_team_facr_id)) return false;
+
+        // vymazu vsechny stavajici hrace
+        if (!($this->model->deleteImportPlayers($away_team_facr_id[$id_team]))) return false;
 
         if (!($import = $this->parseCsv($away_team_facr_id[$id_team]))) return false;
 

@@ -1,12 +1,9 @@
 <?php
 
 /**
- * Base class for all application presenters.
- *
- * @author     John Doe
- * @package    MyApplication
+ * Base presenter for all application presenters.
  */
-abstract class BasePresenter extends NPresenter
+abstract class BasePresenter extends Nette\Application\UI\Presenter
 {
     const U_MAIN_SESSION_KEY = 'u-main-session-key';
 
@@ -14,7 +11,7 @@ abstract class BasePresenter extends NPresenter
 
     const TITLE    = 'Zápis o utkání';
     const AUTHOR   = 'Grunge';
-    const VERSION  = 'v1.2';
+    const VERSION  = 'v1.3';
     const YEARS    = '© 2012-2013';
     const KEYWORDS = 'zapis o utkani, zapis';
 
@@ -36,7 +33,7 @@ abstract class BasePresenter extends NPresenter
         1 => array(
             "button_title" => "Muži A — OP II. třída", // muzi a
             "sheet_title"  => "II. třída",
-        ), 
+        ),
         4 => array(
             "button_title" => "Muži B — IV. třída skupina A", // muzi b
             "sheet_title"  => "IV. třída A",
@@ -90,7 +87,7 @@ abstract class BasePresenter extends NPresenter
             unset($section[$key]);
         }
     }
-    
+
     protected function getTeamFACRID($id_team)
     {
         return $this->model->getTeam($id_team)->fetchPairs('id', 'id_facr');

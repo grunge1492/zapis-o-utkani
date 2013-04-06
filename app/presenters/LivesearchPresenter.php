@@ -11,7 +11,7 @@ class LivesearchPresenter extends BasePresenter
         if (array_key_exists($table, $this->tables)) {
             $method_name = 'get' . $this->tables[$table];
             $matches = call_user_func(array($this, $method_name), $searched_phrase);
-            $this->sendResponse(new NJsonResponse($matches));
+            $this->sendResponse(new Nette\Application\Responses\JsonResponse($matches));
         }
     }
 

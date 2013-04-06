@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application\UI
  */
+
+namespace Nette\Application\UI;
+
+use Nette;
 
 
 
@@ -16,8 +19,7 @@
  * Link generation exception.
  *
  * @author     David Grudl
- * @package Nette\Application\UI
  */
-class NInvalidLinkException extends Exception
+class InvalidLinkException extends \Exception
 {
-}
+	}

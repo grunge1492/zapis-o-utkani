@@ -7,18 +7,18 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\DI
  */
+
+namespace Nette\DI;
+
+use Nette;
 
 
 
 /**
- * The dependency injection container.
- *
- * @author     David Grudl
- * @package Nette\DI
+ * @deprecated
  */
-interface IDIContainer
+interface IContainer
 {
 
 	/**

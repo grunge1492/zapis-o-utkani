@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Utils
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -16,9 +19,8 @@
  * JSON encoder and decoder.
  *
  * @author     David Grudl
- * @package Nette\Utils
  */
-final class NJson
+final class Json
 {
 	const FORCE_ARRAY = 1;
 
@@ -37,7 +39,7 @@ final class NJson
 	 */
 	final public function __construct()
 	{
-		throw new NStaticClassException;
+		throw new Nette\StaticClassException;
 	}
 
 
@@ -49,16 +51,17 @@ final class NJson
 	 */
 	public static function encode($value)
 	{
-		NDebugger::tryError();
-		if (function_exists('ini_set')) {
+		if (function_exists('ini_set')) { // workaround for PHP bugs #52397, #54109, #63004
 			$old = ini_set('display_errors', 0); // needed to receive 'Invalid UTF-8 sequence' error
-			$json = json_encode($value);
-			ini_set('display_errors', $old);
-		} else {
-			$json = json_encode($value);
 		}
-		if (NDebugger::catchError($e)) { // needed to receive 'recursion detected' error
-			throw new NJsonException($e->getMessage());
+		set_error_handler(function($severity, $message) { // needed to receive 'recursion detected' error
+			restore_error_handler();
+			throw new JsonException($message);
+		});
+		$json = json_encode($value);
+		restore_error_handler();
+		if (isset($old)) {
+			ini_set('display_errors', $old);
 		}
 		return $json;
 	}
@@ -77,7 +80,7 @@ final class NJson
 		$value = json_decode($json, (bool) ($options & self::FORCE_ARRAY));
 		if ($value === NULL && $json !== '' && strcasecmp($json, 'null')) { // '' do not clean json_last_error
 			$error = PHP_VERSION_ID >= 50300 ? json_last_error() : 0;
-			throw new NJsonException(isset(self::$messages[$error]) ? self::$messages[$error] : 'Unknown error', $error);
+			throw new JsonException(isset(static::$messages[$error]) ? static::$messages[$error] : 'Unknown error', $error);
 		}
 		return $value;
 	}
@@ -88,8 +91,7 @@ final class NJson
 
 /**
  * The exception that indicates error of JSON encoding/decoding.
- * @package Nette\Utils
  */
-class NJsonException extends Exception
+class JsonException extends \Exception
 {
 }

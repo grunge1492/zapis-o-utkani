@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -16,11 +19,10 @@
  * Supplemental SQLite3 database driver.
  *
  * @author     David Grudl
- * @package Nette\Database\Drivers
  */
-class NSqliteDriver extends NObject implements ISupplementalDriver
+class SqliteDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
-	/** @var NConnection */
+	/** @var Nette\Database\Connection */
 	private $connection;
 
 	/** @var string  Datetime format */
@@ -28,7 +30,7 @@ class NSqliteDriver extends NObject implements ISupplementalDriver
 
 
 
-	public function __construct(NConnection $connection, array $options)
+	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 		$this->fmtDateTime = isset($options['formatDateTime']) ? $options['formatDateTime'] : 'U';
@@ -52,9 +54,19 @@ class NSqliteDriver extends NObject implements ISupplementalDriver
 
 
 	/**
+	 * Formats boolean for use in a SQL statement.
+	 */
+	public function formatBool($value)
+	{
+		return $value ? '1' : '0';
+	}
+
+
+
+	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(DateTime $value)
+	public function formatDateTime(\DateTime $value)
 	{
 		return $value->format($this->fmtDateTime);
 	}
@@ -127,7 +139,7 @@ class NSqliteDriver extends NObject implements ISupplementalDriver
 		$columns = array();
 		foreach ($this->connection->query("PRAGMA table_info({$this->delimite($table)})") as $row) {
 			$column = $row['name'];
-			$pattern = "/(\"$column\"|\[$column\]|$column)\s+[^,]+\s+PRIMARY\s+KEY\s+AUTOINCREMENT/Ui";
+			$pattern = "/(\"$column\"|\[$column\]|$column)\\s+[^,]+\\s+PRIMARY\\s+KEY\\s+AUTOINCREMENT/Ui";
 			$type = explode('(', $row['type']);
 			$columns[] = array(
 				'name' => $column,
@@ -204,9 +216,9 @@ class NSqliteDriver extends NObject implements ISupplementalDriver
 		$keys = array();
 		foreach ($this->connection->query("PRAGMA foreign_key_list({$this->delimite($table)})") as $row) {
 			$keys[$row['id']]['name'] = $row['id']; // foreign key name
-			$keys[$row['id']]['local'][$row['seq']] = $row['from']; // local columns
+			$keys[$row['id']]['local'] = $row['from']; // local columns
 			$keys[$row['id']]['table'] = $row['table']; // referenced table
-			$keys[$row['id']]['foreign'][$row['seq']] = $row['to']; // referenced columns
+			$keys[$row['id']]['foreign'] = $row['to']; // referenced columns
 			$keys[$row['id']]['onDelete'] = $row['on_delete'];
 			$keys[$row['id']]['onUpdate'] = $row['on_update'];
 

@@ -7,7 +7,7 @@ class PDFPresenter extends Added2Presenter
         if ($id_squad = $this->getUserSession('id_squad')) {
             $this->setSetupVariables($id_squad);
         } else {
-            throw new NForbiddenRequestException;
+            throw new ForbiddenRequestException;
         }
 
         $session = array(
@@ -217,37 +217,37 @@ class PDFPresenter extends Added2Presenter
         $pdf->Image(K_PATH_IMAGES . 'circled.png', $x, 7.3, '', '', '', '', '', false, 300);
     }
 
-    private function PDFContestLevel1(&$pdf)
+    private function PDFContestLevel1($pdf)
     {
         $this->PDFCircled($pdf, 109);
     }
 
-    private function PDFContestLevel2(&$pdf)
+    private function PDFContestLevel2($pdf)
     {
         $this->PDFCircled($pdf, 126);
     }
 
-    private function PDFContestLevel3(&$pdf)
+    private function PDFContestLevel3($pdf)
     {
         $this->PDFCircled($pdf, 141);
     }
 
-    private function PDFContestType1(&$pdf)
+    private function PDFContestType1($pdf)
     {
         $this->PDFCircled($pdf, 154);
     }
 
-    private function PDFContestType2(&$pdf)
+    private function PDFContestType2($pdf)
     {
         $this->PDFCircled($pdf, 168);
     }
 
-    private function PDFContestType3(&$pdf)
+    private function PDFContestType3($pdf)
     {
         $this->PDFCircled($pdf, 181);
     }
 
-    private function PDFContestType4(&$pdf)
+    private function PDFContestType4($pdf)
     {
         $this->PDFCircled($pdf, 191);
     }
@@ -283,11 +283,13 @@ class PDFPresenter extends Added2Presenter
         $position = null;
 
         foreach ($players as $player) {
-            if ($player['captain'] == 'true') {
+            if ($player['captain'] == 'true' && !empty($player['id'])) {
                 $position = $player['position'];
                 break;
             }
         }
+        
+        if (empty($position)) return false;
 
         $top = 65.7 + ($position * 5.86);
 

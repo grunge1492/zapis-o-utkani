@@ -1,50 +1,37 @@
 Nette Framework Sandbox
 =======================
 
-The basic structure for your application.
+The basic skeleton of application.
 
 
-What is Nette Framework?
+What is [Nette Framework](http://nette.org)?
 ------------------------
 
-Nette Framework is a powerful, component-based and event-driven framework
-for creating web applications and services in PHP 5.2 & 5.3. Nette Framework
-is designed with simplicity, speed and flexibility in mind. It allows developers
-to easy built better websites.
+Nette Framework is a popular tool for PHP web development. It is designed to be
+the most usable and friendliest as possible. It focuses on security and
+performance and is definitely one of the safest PHP frameworks.
 
-Nette Framework focuses on security and performance and is definitely one of
-the safest and fastest PHP frameworks. Nette Framework support the latest
-technologies and approaches like AJAX, HTML5, SEO, DRY, KISS, MVC, etc.
-
-
-Requirements
-------------
-
-Nette Framework requires PHP 5.2.0 and/or 5.3.0.
+Nette Framework speaks your language and helps you to easily build better websites.
 
 
 Installing
 ----------
 
-Make directories 'sandbox/temp' and 'sandbox/log' writable.
+The best way to install Nette Framework is to download latest package
+from http://nette.org/download or create new project using
+[Composer](http://doc.nette.org/composer):
 
-It is CRITICAL that file 'sandbox/app/config.neon' & whole 'sandbox/app', 'sandbox/log'
-and 'sandbox/temp' directory are NOT accessible directly via a web browser! If you
+	curl -s http://getcomposer.org/installer | php
+	php composer.phar create-project nette/sandbox myApp dev-release-2.0.x
+	cd myApp
+
+Make directories `temp` and `log` writable. Navigate your browser
+to the `www` directory and you will see a welcome page. PHP 5.4 allows
+you run `php -S localhost:8888 -t www` to start the webserver and
+then visit `http://localhost:8888` in your browser.
+
+
+It is CRITICAL that file `app/config/config.neon` & whole `app`, `log`
+and `temp` directory are NOT accessible directly via a web browser! If you
 don't protect this directory from direct web access, anybody will be able to see
-your sensitive data. See: http://nette.org/security-warning
-
-
-Documentation, Examples, Sandbox, Tools
----------------------------------------
-
-Nette Framework: homepage http://nette.org and repository http://github.com/nette/nette
-Sandbox, pre-packaged and configured project: http://github.com/nette/sandbox
-Examples repository: http://github.com/nette/examples
-
-
-License
--------
-
-This skeleton is part of the Nette Framework (http://nette.org). For the full
-copyright and license information, please view the file license.txt.
-For "Adminer" copyright and license information, please view it's source code.
+your sensitive data. See [security warning](http://nette.org/security-warning).

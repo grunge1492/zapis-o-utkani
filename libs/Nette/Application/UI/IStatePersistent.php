@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application\UI
  */
+
+namespace Nette\Application\UI;
+
+use Nette;
 
 
 
@@ -16,21 +19,18 @@
  * Component with ability to save and load its state.
  *
  * @author     David Grudl
- * @package Nette\Application\UI
  */
 interface IStatePersistent
 {
 
 	/**
 	 * Loads state informations.
-	 * @param  array
 	 * @return void
 	 */
 	function loadState(array $params);
 
 	/**
 	 * Saves state informations for next request.
-	 * @param  array
 	 * @return void
 	 */
 	function saveState(array & $params);

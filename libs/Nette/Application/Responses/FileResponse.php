@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Application\Responses
  */
+
+namespace Nette\Application\Responses;
+
+use Nette;
 
 
 
@@ -20,9 +23,8 @@
  * @property-read string $file
  * @property-read string $name
  * @property-read string $contentType
- * @package Nette\Application\Responses
  */
-class NFileResponse extends NObject implements IPresenterResponse
+class FileResponse extends Nette\Object implements Nette\Application\IResponse
 {
 	/** @var string */
 	private $file;
@@ -45,7 +47,7 @@ class NFileResponse extends NObject implements IPresenterResponse
 	public function __construct($file, $name = NULL, $contentType = NULL)
 	{
 		if (!is_file($file)) {
-			throw new NBadRequestException("File '$file' doesn't exist.");
+			throw new Nette\Application\BadRequestException("File '$file' doesn't exist.");
 		}
 
 		$this->file = $file;
@@ -92,7 +94,7 @@ class NFileResponse extends NObject implements IPresenterResponse
 	 * Sends response to output.
 	 * @return void
 	 */
-	public function send(IHttpRequest $httpRequest, IHttpResponse $httpResponse)
+	public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse)
 	{
 		$httpResponse->setContentType($this->contentType);
 		$httpResponse->setHeader('Content-Disposition', 'attachment; filename="' . $this->name . '"');
@@ -102,18 +104,16 @@ class NFileResponse extends NObject implements IPresenterResponse
 
 		if ($this->resuming) {
 			$httpResponse->setHeader('Accept-Ranges', 'bytes');
-			$range = $httpRequest->getHeader('Range');
-			if ($range !== NULL) {
-				$range = substr($range, 6); // 6 == strlen('bytes=')
-				list($start, $end) = explode('-', $range);
-				if ($start == NULL) {
-					$start = 0;
-				}
-				if ($end == NULL) {
+			if (preg_match('#^bytes=(\d*)-(\d*)\z#', $httpRequest->getHeader('Range'), $matches)) {
+				list(, $start, $end) = $matches;
+				if ($start === '') {
+					$start = max(0, $filesize - $end);
+					$end = $filesize - 1;
+
+				} elseif ($end === '' || $end > $filesize - 1) {
 					$end = $filesize - 1;
 				}
-
-				if ($start < 0 || $end <= $start || $end > $filesize -1) {
+				if ($end < $start) {
 					$httpResponse->setCode(416); // requested range not satisfiable
 					return;
 				}
@@ -129,8 +129,9 @@ class NFileResponse extends NObject implements IPresenterResponse
 		}
 
 		$httpResponse->setHeader('Content-Length', $length);
-		while (!feof($handle)) {
-			echo fread($handle, 4e6);
+		while (!feof($handle) && $length > 0) {
+			echo $s = fread($handle, min(4e6, $length));
+			$length -= strlen($s);
 		}
 		fclose($handle);
 	}

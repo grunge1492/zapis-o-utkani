@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Latte
  */
+
+namespace Nette\Latte;
+
+use Nette,
+	Nette\Utils\Strings;
 
 
 
@@ -16,14 +20,13 @@
  * Latte compiler.
  *
  * @author     David Grudl
- * @package Nette\Latte
  */
-class NLatteCompiler extends NObject
+class Compiler extends Nette\Object
 {
 	/** @var string default content type */
 	public $defaultContentType = self::CONTENT_XHTML;
 
-	/** @var array of NLatteToken */
+	/** @var Token[] */
 	private $tokens;
 
 	/** @var string pointer to current node content */
@@ -32,31 +35,31 @@ class NLatteCompiler extends NObject
 	/** @var int  position on source template */
 	private $position;
 
-	/** @var array of [name => array of IMacro] */
+	/** @var array of [name => IMacro[]] */
 	private $macros;
 
-	/** @var NSplObjectStorage */
+	/** @var \SplObjectStorage */
 	private $macroHandlers;
 
-	/** @var array of NHtmlNode */
+	/** @var HtmlNode[] */
 	private $htmlNodes = array();
 
-	/** @var array of NMacroNode */
+	/** @var MacroNode[] */
 	private $macroNodes = array();
 
-	/** @var array of string */
+	/** @var string[] */
 	private $attrCodes = array();
 
 	/** @var string */
 	private $contentType;
 
-	/** @var array */
+	/** @var array [context, subcontext] */
 	private $context;
 
 	/** @var string */
 	private $templateId;
 
-	/** Context-aware escaping states */
+	/** Context-aware escaping content types */
 	const CONTENT_HTML = 'html',
 		CONTENT_XHTML = 'xhtml',
 		CONTENT_XML = 'xml',
@@ -65,7 +68,7 @@ class NLatteCompiler extends NObject
 		CONTENT_ICAL = 'ical',
 		CONTENT_TEXT = 'text';
 
-	/** @internal Context-aware escaping states */
+	/** @internal Context-aware escaping HTML contexts */
 	const CONTEXT_COMMENT = 'comment',
 		CONTEXT_SINGLE_QUOTED = "'",
 		CONTEXT_DOUBLE_QUOTED = '"';
@@ -73,15 +76,15 @@ class NLatteCompiler extends NObject
 
 	public function __construct()
 	{
-		$this->macroHandlers = new SplObjectStorage;
+		$this->macroHandlers = new \SplObjectStorage;
 	}
 
 
 
 	/**
 	 * Adds new macro.
-	 * @param
-	 * @return NLatteCompiler  provides a fluent interface
+	 * @param  string
+	 * @return Compiler  provides a fluent interface
 	 */
 	public function addMacro($name, IMacro $macro)
 	{
@@ -94,12 +97,12 @@ class NLatteCompiler extends NObject
 
 	/**
 	 * Compiles tokens to PHP code.
-	 * @param  array
+	 * @param  Token[]
 	 * @return string
 	 */
 	public function compile(array $tokens)
 	{
-		$this->templateId = NStrings::random();
+		$this->templateId = Strings::random();
 		$this->tokens = $tokens;
 		$output = '';
 		$this->output = & $output;
@@ -112,25 +115,28 @@ class NLatteCompiler extends NObject
 
 		try {
 			foreach ($tokens as $this->position => $token) {
-				if ($token->type === NLatteToken::TEXT) {
+				if ($token->type === Token::TEXT) {
 					$this->output .= $token->text;
 
-				} elseif ($token->type === NLatteToken::MACRO) {
+				} elseif ($token->type === Token::MACRO_TAG) {
 					$isRightmost = !isset($tokens[$this->position + 1])
 						|| substr($tokens[$this->position + 1]->text, 0, 1) === "\n";
 					$this->writeMacro($token->name, $token->value, $token->modifiers, $isRightmost);
 
-				} elseif ($token->type === NLatteToken::TAG_BEGIN) {
-					$this->processTagBegin($token);
+				} elseif ($token->type === Token::HTML_TAG_BEGIN) {
+					$this->processHtmlTagBegin($token);
 
-				} elseif ($token->type === NLatteToken::TAG_END) {
-					$this->processTagEnd($token);
+				} elseif ($token->type === Token::HTML_TAG_END) {
+					$this->processHtmlTagEnd($token);
 
-				} elseif ($token->type === NLatteToken::ATTRIBUTE) {
-					$this->processAttribute($token);
+				} elseif ($token->type === Token::HTML_ATTRIBUTE) {
+					$this->processHtmlAttribute($token);
+
+				} elseif ($token->type === Token::COMMENT) {
+					$this->processComment($token);
 				}
 			}
-		} catch (NCompileException $e) {
+		} catch (CompileException $e) {
 			$e->sourceLine = $token->line;
 			throw $e;
 		}
@@ -138,8 +144,8 @@ class NLatteCompiler extends NObject
 
 		foreach ($this->htmlNodes as $htmlNode) {
 			if (!empty($htmlNode->macroAttrs)) {
-				throw new NCompileException("Missing end tag </$htmlNode->name> for macro-attribute " . NParser::N_PREFIX
-					. implode(' and ' . NParser::N_PREFIX, array_keys($htmlNode->macroAttrs)) . ".", 0, $token->line);
+				throw new CompileException("Missing end tag </$htmlNode->name> for macro-attribute " . Parser::N_PREFIX
+					. implode(' and ' . Parser::N_PREFIX, array_keys($htmlNode->macroAttrs)) . ".", 0, $token->line);
 			}
 		}
 
@@ -153,7 +159,7 @@ class NLatteCompiler extends NObject
 		$output = ($prologs ? $prologs . "<?php\n//\n// main template\n//\n?>\n" : '') . $output . $epilogs;
 
 		if ($this->macroNodes) {
-			throw new NCompileException("There are unclosed macros.", 0, $token->line);
+			throw new CompileException("There are unclosed macros.", 0, $token->line);
 		}
 
 		$output = $this->expandTokens($output);
@@ -163,7 +169,7 @@ class NLatteCompiler extends NObject
 
 
 	/**
-	 * @return NLatteCompiler  provides a fluent interface
+	 * @return Compiler  provides a fluent interface
 	 */
 	public function setContentType($type)
 	{
@@ -185,7 +191,7 @@ class NLatteCompiler extends NObject
 
 
 	/**
-	 * @return NLatteCompiler  provides a fluent interface
+	 * @return Compiler  provides a fluent interface
 	 */
 	public function setContext($context, $sub = NULL)
 	{
@@ -196,7 +202,7 @@ class NLatteCompiler extends NObject
 
 
 	/**
-	 * @return array [context, spec]
+	 * @return array [context, subcontext]
 	 */
 	public function getContext()
 	{
@@ -233,15 +239,21 @@ class NLatteCompiler extends NObject
 
 
 
-	private function processTagBegin($token)
+	private function processHtmlTagBegin(Token $token)
 	{
 		if ($token->closing) {
 			do {
 				$htmlNode = array_pop($this->htmlNodes);
 				if (!$htmlNode) {
-					$htmlNode = new NHtmlNode($token->name);
+					$htmlNode = new HtmlNode($token->name);
 				}
-			} while (strcasecmp($htmlNode->name, $token->name));
+				if (strcasecmp($htmlNode->name, $token->name) === 0) {
+					break;
+				}
+				if ($htmlNode->macroAttrs) {
+					throw new CompileException("Unexpected </$token->name>.", 0, $token->line);
+				}
+			} while (TRUE);
 			$this->htmlNodes[] = $htmlNode;
 			$htmlNode->closing = TRUE;
 			$htmlNode->offset = strlen($this->output);
@@ -251,9 +263,9 @@ class NLatteCompiler extends NObject
 			$this->setContext(self::CONTEXT_COMMENT);
 
 		} else {
-			$this->htmlNodes[] = $htmlNode = new NHtmlNode($token->name);
+			$this->htmlNodes[] = $htmlNode = new HtmlNode($token->name);
 			$htmlNode->isEmpty = in_array($this->contentType, array(self::CONTENT_HTML, self::CONTENT_XHTML))
-				&& isset(NHtml::$emptyElements[strtolower($token->name)]);
+				&& isset(Nette\Utils\Html::$emptyElements[strtolower($token->name)]);
 			$htmlNode->offset = strlen($this->output);
 			$this->setContext(NULL);
 		}
@@ -262,7 +274,7 @@ class NLatteCompiler extends NObject
 
 
 
-	private function processTagEnd($token)
+	private function processHtmlTagEnd(Token $token)
 	{
 		if ($token->text === '-->') {
 			$this->output .= $token->text;
@@ -271,7 +283,7 @@ class NLatteCompiler extends NObject
 		}
 
 		$htmlNode = end($this->htmlNodes);
-		$isEmpty = !$htmlNode->closing && (NStrings::contains($token->text, '/') || $htmlNode->isEmpty);
+		$isEmpty = !$htmlNode->closing && (Strings::contains($token->text, '/') || $htmlNode->isEmpty);
 
 		if ($isEmpty && in_array($this->contentType, array(self::CONTENT_HTML, self::CONTENT_XHTML))) { // auto-correct
 			$token->text = preg_replace('#^.*>#', $this->contentType === self::CONTENT_XHTML ? ' />' : '>', $token->text);
@@ -305,11 +317,16 @@ class NLatteCompiler extends NObject
 
 
 
-	private function processAttribute($token)
+	private function processHtmlAttribute(Token $token)
 	{
 		$htmlNode = end($this->htmlNodes);
-		if (NStrings::startsWith($token->name, NParser::N_PREFIX)) {
-			$htmlNode->macroAttrs[substr($token->name, strlen(NParser::N_PREFIX))] = $token->value;
+		if (Strings::startsWith($token->name, Parser::N_PREFIX)) {
+			$name = substr($token->name, strlen(Parser::N_PREFIX));
+			if (isset($htmlNode->macroAttrs[$name])) {
+				throw new CompileException("Found multiple macro-attributes $token->name.", 0, $token->line);
+			}
+			$htmlNode->macroAttrs[$name] = $token->value;
+
 		} else {
 			$htmlNode->attrs[$token->name] = TRUE;
 			$this->output .= $token->text;
@@ -327,6 +344,16 @@ class NLatteCompiler extends NObject
 
 
 
+	private function processComment(Token $token)
+	{
+		$isLeftmost = trim(substr($this->output, strrpos("\n$this->output", "\n"))) === '';
+		if (!$isLeftmost) {
+			$this->output .= substr($token->text, strlen(rtrim($token->text, "\n")));
+		}
+	}
+
+
+
 	/********************* macros ****************d*g**/
 
 
@@ -337,18 +364,18 @@ class NLatteCompiler extends NObject
 	 * @param  string
 	 * @param  string
 	 * @param  bool
-	 * @return NMacroNode
+	 * @return MacroNode
 	 */
-	public function writeMacro($name, $args = NULL, $modifiers = NULL, $isRightmost = FALSE, NHtmlNode $htmlNode = NULL)
+	public function writeMacro($name, $args = NULL, $modifiers = NULL, $isRightmost = FALSE, HtmlNode $htmlNode = NULL, $prefix = NULL)
 	{
 		if ($name[0] === '/') { // closing
 			$node = end($this->macroNodes);
 
 			if (!$node || ("/$node->name" !== $name && '/' !== $name) || $modifiers
-				|| ($args && $node->args && !NStrings::startsWith("$node->args ", "$args "))
+				|| ($args && $node->args && !Strings::startsWith("$node->args ", "$args "))
 			) {
 				$name .= $args ? ' ' : '';
-				throw new NCompileException("Unexpected macro {{$name}{$args}{$modifiers}}"
+				throw new CompileException("Unexpected macro {{$name}{$args}{$modifiers}}"
 					. ($node ? ", expecting {/$node->name}" . ($args && $node->args ? " or eventually {/$node->name $node->args}" : '') : ''));
 			}
 
@@ -368,7 +395,7 @@ class NLatteCompiler extends NObject
 			$this->output .= $node->content;
 
 		} else { // opening
-			$node = $this->expandMacro($name, $args, $modifiers, $htmlNode);
+			$node = $this->expandMacro($name, $args, $modifiers, $htmlNode, $prefix);
 			if ($node->isEmpty) {
 				$this->writeCode($node->openingCode, $this->output, $isRightmost);
 
@@ -402,56 +429,58 @@ class NLatteCompiler extends NObject
 	/**
 	 * Generates code for macro <tag n:attr> to the output.
 	 * @param  string
-	 * @param  array
-	 * @param  bool
 	 * @return void
 	 */
-	public function writeAttrsMacro($code, NHtmlNode $htmlNode)
+	public function writeAttrsMacro($code, HtmlNode $htmlNode)
 	{
 		$attrs = $htmlNode->macroAttrs;
 		$left = $right = array();
 		$attrCode = '';
 
 		foreach ($this->macros as $name => $foo) {
-			$macro = $htmlNode->closing ? "/$name" : $name;
+			$attrName = MacroNode::PREFIX_INNER . "-$name";
+			if (isset($attrs[$attrName])) {
+				if ($htmlNode->closing) {
+					$left[] = array("/$name", '', MacroNode::PREFIX_INNER);
+				} else {
+					array_unshift($right, array($name, $attrs[$attrName], MacroNode::PREFIX_INNER));
+				}
+				unset($attrs[$attrName]);
+			}
+		}
+
+		foreach (array_reverse($this->macros) as $name => $foo) {
+			$attrName = MacroNode::PREFIX_TAG . "-$name";
+			if (isset($attrs[$attrName])) {
+				$left[] = array($name, $attrs[$attrName], MacroNode::PREFIX_TAG);
+				array_unshift($right, array("/$name", '', MacroNode::PREFIX_TAG));
+				unset($attrs[$attrName]);
+			}
+		}
+
+		foreach ($this->macros as $name => $foo) {
 			if (isset($attrs[$name])) {
 				if ($htmlNode->closing) {
-					$right[] = array($macro, '');
+					$right[] = array("/$name", '', NULL);
 				} else {
-					array_unshift($left, array($macro, $attrs[$name]));
+					array_unshift($left, array($name, $attrs[$name], NULL));
 				}
+				unset($attrs[$name]);
 			}
-
-			$innerName = "inner-$name";
-			if (isset($attrs[$innerName])) {
-				if ($htmlNode->closing) {
-					$left[] = array($macro, '');
-				} else {
-					array_unshift($right, array($macro, $attrs[$innerName]));
-				}
-			}
-
-			$tagName = "tag-$name";
-			if (isset($attrs[$tagName])) {
-				array_unshift($left, array($name, $attrs[$tagName]));
-				$right[] = array("/$name", '');
-			}
-
-			unset($attrs[$name], $attrs[$innerName], $attrs[$tagName]);
 		}
 
 		if ($attrs) {
-			throw new NCompileException("Unknown macro-attribute " . NParser::N_PREFIX
-				. implode(' and ' . NParser::N_PREFIX, array_keys($attrs)));
+			throw new CompileException("Unknown macro-attribute " . Parser::N_PREFIX
+				. implode(' and ' . Parser::N_PREFIX, array_keys($attrs)));
 		}
 
 		if (!$htmlNode->closing) {
-			$htmlNode->attrCode = & $this->attrCodes[$uniq = ' n:' . NStrings::random()];
-			$code = substr_replace($code, $uniq, ($tmp=strrpos($code, '/>')) ? $tmp : strrpos($code, '>'), 0);
+			$htmlNode->attrCode = & $this->attrCodes[$uniq = ' n:' . Nette\Utils\Strings::random()];
+			$code = substr_replace($code, $uniq, strrpos($code, '/>') ?: strrpos($code, '>'), 0);
 		}
 
 		foreach ($left as $item) {
-			$node = $this->writeMacro($item[0], $item[1], NULL, NULL, $htmlNode);
+			$node = $this->writeMacro($item[0], $item[1], NULL, NULL, $htmlNode, $item[2]);
 			if ($node->closing || $node->isEmpty) {
 				$htmlNode->attrCode .= $node->attrCode;
 				if ($node->isEmpty) {
@@ -481,21 +510,21 @@ class NLatteCompiler extends NObject
 	 * @param  string
 	 * @param  string
 	 * @param  string
-	 * @return NMacroNode
+	 * @return MacroNode
 	 */
-	public function expandMacro($name, $args, $modifiers = NULL, NHtmlNode $htmlNode = NULL)
+	public function expandMacro($name, $args, $modifiers = NULL, HtmlNode $htmlNode = NULL, $prefix = NULL)
 	{
 		if (empty($this->macros[$name])) {
-			$js = $this->htmlNodes && strtolower(end($this->htmlNodes)->name) === 'script';
-			throw new NCompileException("Unknown macro {{$name}}" . ($js ? " (in JavaScript, try to put a space after bracket.)" : ''));
+			$cdata = $this->htmlNodes && in_array(strtolower(end($this->htmlNodes)->name), array('script', 'style'));
+			throw new CompileException("Unknown macro {{$name}}" . ($cdata ? " (in JavaScript or CSS, try to put a space after bracket.)" : ''));
 		}
 		foreach (array_reverse($this->macros[$name]) as $macro) {
-			$node = new NMacroNode($macro, $name, $args, $modifiers, $this->macroNodes ? end($this->macroNodes) : NULL, $htmlNode);
+			$node = new MacroNode($macro, $name, $args, $modifiers, $this->macroNodes ? end($this->macroNodes) : NULL, $htmlNode, $prefix);
 			if ($macro->nodeOpened($node) !== FALSE) {
 				return $node;
 			}
 		}
-		throw new NCompileException("Unhandled macro {{$name}}");
+		throw new CompileException("Unhandled macro {{$name}}");
 	}
 
 }

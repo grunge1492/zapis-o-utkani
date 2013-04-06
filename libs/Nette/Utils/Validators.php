@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Utils
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -16,9 +19,8 @@
  * Validation utilites.
  *
  * @author     David Grudl
- * @package Nette\Utils
  */
-class NValidators extends NObject
+class Validators extends Nette\Object
 {
 	protected static $validators = array(
 		'bool' => 'is_bool',
@@ -27,20 +29,20 @@ class NValidators extends NObject
 		'integer' => 'is_int',
 		'float' => 'is_float',
 		'number' => NULL, // is_int || is_float,
-		'numeric' => 'NValidators::isNumeric',
-		'numericint' => 'NValidators::isNumericInt',
+		'numeric' => array(__CLASS__, 'isNumeric'),
+		'numericint' => array(__CLASS__, 'isNumericInt'),
 		'string' =>  'is_string',
-		'unicode' => 'NValidators::isUnicode',
+		'unicode' => array(__CLASS__, 'isUnicode'),
 		'array' => 'is_array',
-		'list' => 'NValidators::isList',
+		'list' => array(__CLASS__, 'isList'),
 		'object' => 'is_object',
 		'resource' => 'is_resource',
 		'scalar' => 'is_scalar',
-		'callable' => 'NValidators::isCallable',
+		'callable' => array(__CLASS__, 'isCallable'),
 		'null' => 'is_null',
-		'email' => 'NValidators::isEmail',
-		'url' => 'NValidators::isUrl',
-		'none' => 'NValidators::isNone',
+		'email' => array(__CLASS__, 'isEmail'),
+		'url' => array(__CLASS__, 'isUrl'),
+		'none' => array(__CLASS__, 'isNone'),
 		'pattern' => NULL,
 		'alnum' => 'ctype_alnum',
 		'alpha' => 'ctype_alpha',
@@ -53,7 +55,7 @@ class NValidators extends NObject
 
 	protected static $counters = array(
 		'string' =>  'strlen',
-		'unicode' => 'NStrings::length',
+		'unicode' => array('Nette\Utils\Strings', 'length'),
 		'array' => 'count',
 		'list' => 'count',
 		'alnum' => 'strlen',
@@ -76,7 +78,7 @@ class NValidators extends NObject
 	 */
 	public static function assert($value, $expected, $label = 'variable')
 	{
-		if (!self::is($value, $expected)) {
+		if (!static::is($value, $expected)) {
 			$expected = str_replace(array('|', ':'), array(' or ', ' in range '), $expected);
 			if (is_array($value)) {
 				$type = 'array(' . count($value) . ')';
@@ -87,7 +89,7 @@ class NValidators extends NObject
 			} else {
 				$type = gettype($value);
 			}
-			throw new NAssertionException("The $label expects to be $expected, $type given.");
+			throw new AssertionException("The $label expects to be $expected, $type given.");
 		}
 	}
 
@@ -104,10 +106,10 @@ class NValidators extends NObject
 	{
 		self::assert($arr, 'array', 'first argument');
 		if (!array_key_exists($field, $arr)) {
-			throw new NAssertionException('Missing ' . str_replace('%', $field, $label) . '.');
+			throw new AssertionException('Missing ' . str_replace('%', $field, $label) . '.');
 
 		} elseif ($expected) {
-			self::assert($arr[$field], $expected, str_replace('%', $field, $label));
+			static::assert($arr[$field], $expected, str_replace('%', $field, $label));
 		}
 	}
 
@@ -123,8 +125,8 @@ class NValidators extends NObject
 	{
 		foreach (explode('|', $expected) as $item) {
 			list($type) = $item = explode(':', $item, 2);
-			if (isset(self::$validators[$type])) {
-				if (!call_user_func(self::$validators[$type], $value)) {
+			if (isset(static::$validators[$type])) {
+				if (!call_user_func(static::$validators[$type], $value)) {
 					continue;
 				}
 			} elseif ($type === 'number') {
@@ -132,7 +134,7 @@ class NValidators extends NObject
 					continue;
 				}
 			} elseif ($type === 'pattern') {
-				if (preg_match('|^' . (isset($item[1]) ? $item[1] : '') . '$|', $value)) {
+				if (preg_match('|^' . (isset($item[1]) ? $item[1] : '') . '\z|', $value)) {
 					return TRUE;
 				}
 				continue;
@@ -141,8 +143,8 @@ class NValidators extends NObject
 			}
 
 			if (isset($item[1])) {
-				if (isset(self::$counters[$type])) {
-					$value = call_user_func(self::$counters[$type], $value);
+				if (isset(static::$counters[$type])) {
+					$value = call_user_func(static::$counters[$type], $value);
 				}
 				$range = explode('..', $item[1]);
 				if (!isset($range[1])) {
@@ -161,31 +163,28 @@ class NValidators extends NObject
 
 	/**
 	 * Finds whether a value is an integer.
-	 * @param  mixed
 	 * @return bool
 	 */
 	public static function isNumericInt($value)
 	{
-		return is_int($value) || is_string($value) && preg_match('#^-?[0-9]+$#', $value);
+		return is_int($value) || is_string($value) && preg_match('#^-?[0-9]+\z#', $value);
 	}
 
 
 
 	/**
 	 * Finds whether a string is a floating point number in decimal base.
-	 * @param  mixed
 	 * @return bool
 	 */
 	public static function isNumeric($value)
 	{
-		return is_float($value) || is_int($value) || is_string($value) && preg_match('#^-?[0-9]*[.]?[0-9]+$#', $value);
+		return is_float($value) || is_int($value) || is_string($value) && preg_match('#^-?[0-9]*[.]?[0-9]+\z#', $value);
 	}
 
 
 
 	/**
 	 * Finds whether a value is a syntactically correct callback.
-	 * @param  mixed
 	 * @return bool
 	 */
 	public static function isCallable($value)
@@ -209,7 +208,6 @@ class NValidators extends NObject
 
 	/**
 	 * Finds whether a value is "falsy".
-	 * @param  mixed
 	 * @return bool
 	 */
 	public static function isNone($value)
@@ -253,9 +251,10 @@ class NValidators extends NObject
 	{
 		$atom = "[-a-z0-9!#$%&'*+/=?^_`{|}~]"; // RFC 5322 unquoted characters in local-part
 		$localPart = "(?:\"(?:[ !\\x23-\\x5B\\x5D-\\x7E]*|\\\\[ -~])+\"|$atom+(?:\\.$atom+)*)"; // quoted or unquoted
-		$chars = "a-z0-9\x80-\xFF"; // superset of IDN
-		$domain = "[$chars](?:[-$chars]{0,61}[$chars])"; // RFC 1034 one domain component
-		return (bool) preg_match("(^$localPart@(?:$domain?\\.)+[-$chars]{2,19}\\z)i", $value);
+		$alpha = "a-z\x80-\xFF"; // superset of IDN
+		$domain = "[0-9$alpha](?:[-0-9$alpha]{0,61}[0-9$alpha])?"; // RFC 1034 one domain component
+		$topDomain = "[$alpha][-0-9$alpha]{0,17}[$alpha]";
+		return (bool) preg_match("(^$localPart@(?:$domain\\.)+$topDomain\\z)i", $value);
 	}
 
 
@@ -267,8 +266,10 @@ class NValidators extends NObject
 	 */
 	public static function isUrl($value)
 	{
-		$chars = "a-z0-9\x80-\xFF";
-		return (bool) preg_match("#^https?://(?:[$chars](?:[-$chars]{0,61}[$chars])?\\.)+[-$chars]{2,19}(/\S*)?$#i", $value);
+		$alpha = "a-z\x80-\xFF";
+		$domain = "[0-9$alpha](?:[-0-9$alpha]{0,61}[0-9$alpha])?";
+		$topDomain = "[$alpha][-0-9$alpha]{0,17}[$alpha]";
+		return (bool) preg_match("(^https?://(?:(?:$domain\\.)*$topDomain|\\d{1,3}\.\\d{1,3}\.\\d{1,3}\.\\d{1,3})(:\\d{1,5})?(/\\S*)?\\z)i", $value);
 	}
 
 }
@@ -277,8 +278,7 @@ class NValidators extends NObject
 
 /**
  * The exception that indicates assertion error.
- * @package Nette\Utils
  */
-class NAssertionException extends Exception
+class AssertionException extends \Exception
 {
 }

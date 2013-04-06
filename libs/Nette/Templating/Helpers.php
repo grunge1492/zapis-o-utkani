@@ -7,8 +7,14 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Templating
  */
+
+namespace Nette\Templating;
+
+use Nette,
+	Nette\Utils\Strings,
+	Nette\Forms\Form,
+	Nette\Utils\Html;
 
 
 
@@ -16,27 +22,27 @@
  * Template helpers.
  *
  * @author     David Grudl
- * @package Nette\Templating
  */
-final class NTemplateHelpers
+final class Helpers
 {
 	private static $helpers = array(
-		'normalize' => 'NStrings::normalize',
-		'toascii' => 'NStrings::toAscii',
-		'webalize' => 'NStrings::webalize',
-		'truncate' => 'NStrings::truncate',
-		'lower' => 'NStrings::lower',
-		'upper' => 'NStrings::upper',
-		'firstupper' => 'NStrings::firstUpper',
-		'capitalize' => 'NStrings::capitalize',
-		'trim' => 'NStrings::trim',
-		'padleft' => 'NStrings::padLeft',
-		'padright' => 'NStrings::padRight',
-		'replacere' => 'NStrings::replace',
+		'normalize' => 'Nette\Utils\Strings::normalize',
+		'toascii' => 'Nette\Utils\Strings::toAscii',
+		'webalize' => 'Nette\Utils\Strings::webalize',
+		'truncate' => 'Nette\Utils\Strings::truncate',
+		'lower' => 'Nette\Utils\Strings::lower',
+		'upper' => 'Nette\Utils\Strings::upper',
+		'firstupper' => 'Nette\Utils\Strings::firstUpper',
+		'capitalize' => 'Nette\Utils\Strings::capitalize',
+		'trim' => 'Nette\Utils\Strings::trim',
+		'padleft' => 'Nette\Utils\Strings::padLeft',
+		'padright' => 'Nette\Utils\Strings::padRight',
+		'reverse' =>  'Nette\Utils\Strings::reverse',
+		'replacere' => 'Nette\Utils\Strings::replace',
 		'url' => 'rawurlencode',
 		'striptags' => 'strip_tags',
 		'nl2br' => 'nl2br',
-		'substr' => 'NStrings::substring',
+		'substr' => 'Nette\Utils\Strings::substring',
 		'repeat' => 'str_repeat',
 		'implode' => 'implode',
 		'number' => 'number_format',
@@ -50,12 +56,12 @@ final class NTemplateHelpers
 	/**
 	 * Try to load the requested helper.
 	 * @param  string  helper name
-	 * @return callback
+	 * @return callable
 	 */
 	public static function loader($helper)
 	{
 		if (method_exists(__CLASS__, $helper)) {
-			return callback(__CLASS__, $helper);
+			return new Nette\Callback(__CLASS__, $helper);
 		} elseif (isset(self::$helpers[$helper])) {
 			return self::$helpers[$helper];
 		}
@@ -71,7 +77,7 @@ final class NTemplateHelpers
 	 */
 	public static function escapeHtml($s, $quotes = ENT_QUOTES)
 	{
-		if (is_object($s) && ($s instanceof ITemplate || $s instanceof NHtml || $s instanceof NForm)) {
+		if (is_object($s) && ($s instanceof ITemplate || $s instanceof Html || $s instanceof Form)) {
 			return $s->__toString(TRUE);
 		}
 		return htmlSpecialChars($s, $quotes);
@@ -127,10 +133,10 @@ final class NTemplateHelpers
 	 */
 	public static function escapeJs($s)
 	{
-		if (is_object($s) && ($s instanceof ITemplate || $s instanceof NHtml || $s instanceof NForm)) {
+		if (is_object($s) && ($s instanceof ITemplate || $s instanceof Html || $s instanceof Form)) {
 			$s = $s->__toString(TRUE);
 		}
-		return str_replace(']]>', ']]\x3E', NJson::encode($s));
+		return str_replace(']]>', ']]\x3E', Nette\Utils\Json::encode($s));
 	}
 
 
@@ -155,12 +161,12 @@ final class NTemplateHelpers
 	 */
 	public static function strip($s)
 	{
-		return NStrings::replace(
+		return Strings::replace(
 			$s,
-			'#(</textarea|</pre|</script|^).*?(?=<textarea|<pre|<script|$)#si',
-			callback(create_function('$m', '
-				return trim(preg_replace("#[ \\t\\r\\n]+#", " ", $m[0]));
-			')));
+			'#(</textarea|</pre|</script|^).*?(?=<textarea|<pre|<script|\z)#si',
+			function($m) {
+				return trim(preg_replace('#[ \t\r\n]+#', " ", $m[0]));
+			});
 	}
 
 
@@ -175,10 +181,10 @@ final class NTemplateHelpers
 	public static function indent($s, $level = 1, $chars = "\t")
 	{
 		if ($level >= 1) {
-			$s = NStrings::replace($s, '#<(textarea|pre).*?</\\1#si', callback(create_function('$m', '
-				return strtr($m[0], " \\t\\r\\n", "\\x1F\\x1E\\x1D\\x1A");
-			')));
-			$s = NStrings::indent($s, $level, $chars);
+			$s = Strings::replace($s, '#<(textarea|pre).*?</\\1#si', function($m) {
+				return strtr($m[0], " \t\r\n", "\x1F\x1E\x1D\x1A");
+			});
+			$s = Strings::indent($s, $level, $chars);
 			$s = strtr($s, "\x1F\x1E\x1D\x1A", " \t\r\n");
 		}
 		return $s;
@@ -202,8 +208,8 @@ final class NTemplateHelpers
 			$format = self::$dateFormat;
 		}
 
-		$time = NDateTime53::from($time);
-		return NStrings::contains($format, '%')
+		$time = Nette\DateTime::from($time);
+		return Strings::contains($format, '%')
 			? strftime($format, $time->format('U')) // formats according to locales
 			: $time->format($format); // formats using date()
 	}
@@ -238,7 +244,7 @@ final class NTemplateHelpers
 	 */
 	public static function length($var)
 	{
-		return is_string($var) ? NStrings::length($var) : count($var);
+		return is_string($var) ? Strings::length($var) : count($var);
 	}
 
 
@@ -266,7 +272,7 @@ final class NTemplateHelpers
 	public static function dataStream($data, $type = NULL)
 	{
 		if ($type === NULL) {
-			$type = NMimeTypeDetector::fromString($data, NULL);
+			$type = Nette\Utils\MimeTypeDetector::fromString($data);
 		}
 		return 'data:' . ($type ? "$type;" : '') . 'base64,' . base64_encode($data);
 	}
@@ -298,7 +304,7 @@ final class NTemplateHelpers
 	{
 		$res = $php = '';
 		$lastChar = ';';
-		$tokens = new ArrayIterator(token_get_all($source));
+		$tokens = new \ArrayIterator(token_get_all($source));
 		foreach ($tokens as $key => $token) {
 			if (is_array($token)) {
 				if ($token[0] === T_INLINE_HTML) {
@@ -307,7 +313,7 @@ final class NTemplateHelpers
 
 				} elseif ($token[0] === T_CLOSE_TAG) {
 					$next = isset($tokens[$key + 1]) ? $tokens[$key + 1] : NULL;
-					if (substr($res, -1) !== '<' && preg_match('#^<\?php\s*$#', $php)) {
+					if (substr($res, -1) !== '<' && preg_match('#^<\?php\s*\z#', $php)) {
 						$php = ''; // removes empty (?php ?), but retains ((?php ?)?php
 
 					} elseif (is_array($next) && $next[0] === T_OPEN_TAG) { // remove ?)(?php
@@ -320,7 +326,7 @@ final class NTemplateHelpers
 						$tokens->next();
 
 					} elseif ($next) {
-						$res .= preg_replace('#;?(\s)*$#', '$1', $php) . $token[1]; // remove last semicolon before ?)
+						$res .= preg_replace('#;?(\s)*\z#', '$1', $php) . $token[1]; // remove last semicolon before ?)
 						if (strlen($res) - strrpos($res, "\n") > $lineLength
 							&& (!is_array($next) || strpos($next[1], "\n") === FALSE)
 						) {

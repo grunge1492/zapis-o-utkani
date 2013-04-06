@@ -7,14 +7,16 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database
  */
+
+namespace Nette\Database;
+
+use Nette;
 
 
 
 /**
  * Information about tables and columns structure.
- * @package Nette\Database
  */
 interface IReflection
 {
@@ -29,25 +31,27 @@ interface IReflection
 		FIELD_DATETIME = 'datetime';
 
 	/**
-	 * Gets primary key of $table
+	 * Gets primary key of $table.
 	 * @param  string
 	 * @return string
 	 */
 	function getPrimary($table);
 
 	/**
-	 * Gets referenced table & referenced column
+	 * Gets referenced table & referenced column.
 	 * Example:
 	 * 	  author, book returns array(book, author_id)
 	 *
 	 * @param  string  source table
 	 * @param  string  referencing key
 	 * @return array   array(referenced table, referenced column)
+	 * @throws Reflection\MissingReferenceException
+	 * @throws Reflection\AmbiguousReferenceKeyException
 	 */
 	function getHasManyReference($table, $key);
 
 	/**
-	 * Gets referenced table & referencing column
+	 * Gets referenced table & referencing column.
 	 * Example
 	 *     book, author      returns array(author, author_id)
 	 *     book, translator  returns array(author, translator_id)
@@ -55,13 +59,13 @@ interface IReflection
 	 * @param  string  source table
 	 * @param  string  referencing key
 	 * @return array   array(referenced table, referencing column)
+	 * @throws Reflection\MissingReferenceException
 	 */
 	function getBelongsToReference($table, $key);
 
 	/**
 	 * Injects database connection.
-	 * @param  NConnection
 	 */
-	function setConnection(NConnection $connection);
+	function setConnection(Connection $connection);
 
 }

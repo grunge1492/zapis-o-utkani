@@ -1,60 +1,52 @@
 id;prijmeni;jmeno;narozen;klub;platnost
-04050549;Adam;Vojtěch;2004;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-79101426;Benáček;Lukáš;1979;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-00110242;Čermák;David;2000;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-99100831;Dobrovolný;Jan;1999;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-96111116;Dobrovolný;Milan;1996;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-96060779;Dudr;Vladimír;1996;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-97090858;Dvořák;Jiří;1997;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-69010297;Dvořák;Jiří;1969;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-00050516;Chyba;Jakub;2000;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-67090730;Chyba;Josef;1967;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-63050539;Jaša;Josef;1963;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-00120805;Ješina;Matěj;2000;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-84020676;Kafka;Ondřej;1984;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-99010836;Koch;Jiří;1999;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98071187;Kolomazník;Jan;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-60100245;Komínek;Alois;1960;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-82121643;Komínek;Filip;1982;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98020651;Kratochvíl;Ondřej;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-63020444;Krejska;Emil;1963;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-79041304;Kudrna;Leoš;1979;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-83070418;Liška;Lukáš;1983;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-91072038;Mašek;Kamil;1991;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-73050773;Mejzlík;Josef;1973;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-89061458;Mejzlík;Michal;1989;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-85121258;Mikyska;Lukáš;1985;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-83031100;Mikyska;Miroslav;1983;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-83020609;Nožička;Lukáš;1983;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-89040331;Nožička;Petr;1989;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-92022004;Nožička;Radek;1992;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-95041538;Pažourek;Josef;1995;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-75101144;Pažourek;Josef;1975;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-81051295;Pospíšil;Bohumír;1981;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-86011406;Rambousek;Petr;1986;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-95030688;Salák;Jan;1995;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-75010593;Salák;Milan;1975;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98010334;Sklenář;Michal;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-99031629;Skryja;Martin;1999;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-01031419;Skryja;Vít;2001;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-03071151;Smetana;Tadeáš;2003;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-01100517;Suk;Daniel;2001;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-82060854;Šilhán;Tomáš;1982;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98051787;Šindelář;Josef;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98060113;Štefl;Adam;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-96080654;Štolpa;Ondřej;1996;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-00010396;Šula;Marek;2000;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-91051703;Šula;Vladimír;1991;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-65070205;Šula;Vladimír;1965;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-94070628;Šulová;Veronika;1994;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-01120448;Švec;Jakub;2001;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98010634;Švec;Roman;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-00101081;Trnka;Jan;2000;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-76100911;Trnka;Jaromír;1976;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-81080708;Trnka;Lukáš;1981;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-98060410;Trnka;Pavel;1998;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-82050452;Trnka;Zbyněk;1982;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-01050436;Trojan;Josef;2001;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-75040078;Valeš;Pavel;1975;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-80110582;Věžník;Lukáš;1980;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
-00121105;Voneš;Jan;2000;6140711 - FK Rudíkov - Trnava;Čeká na platbu pro rok 2013.
+04050549;Adam;Vojtěch;2004;6140711 - FK Rudíkov - Trnava;Platné členství.
+79101426;Benáček;Lukáš;1979;6140711 - FK Rudíkov - Trnava;Platné členství.
+00110242;Čermák;David;2000;6140711 - FK Rudíkov - Trnava;Platné členství.
+99100831;Dobrovolný;Jan;1999;6140711 - FK Rudíkov - Trnava;Platné členství.
+96111116;Dobrovolný;Milan;1996;6140711 - FK Rudíkov - Trnava;Platné členství.
+97090858;Dvořák;Jiří;1997;6140711 - FK Rudíkov - Trnava;Platné členství.
+69010297;Dvořák;Jiří;1969;6140711 - FK Rudíkov - Trnava;Platné členství.
+00050516;Chyba;Jakub;2000;6140711 - FK Rudíkov - Trnava;Platné členství.
+67090730;Chyba;Josef;1967;6140711 - FK Rudíkov - Trnava;Platné členství.
+63050539;Jaša;Josef;1963;6140711 - FK Rudíkov - Trnava;Platné členství.
+00120805;Ješina;Matěj;2000;6140711 - FK Rudíkov - Trnava;Platné členství.
+84020676;Kafka;Ondřej;1984;6140711 - FK Rudíkov - Trnava;Platné členství.
+99010836;Koch;Jiří;1999;6140711 - FK Rudíkov - Trnava;Platné členství.
+98071187;Kolomazník;Jan;1998;6140711 - FK Rudíkov - Trnava;Platné členství.
+60100245;Komínek;Alois;1960;6140711 - FK Rudíkov - Trnava;Platné členství.
+82121643;Komínek;Filip;1982;6140711 - FK Rudíkov - Trnava;Platné členství.
+98020651;Kratochvíl;Ondřej;1998;6140711 - FK Rudíkov - Trnava;Platné členství.
+63020444;Krejska;Emil;1963;6140711 - FK Rudíkov - Trnava;Platné členství.
+83070418;Liška;Lukáš;1983;6140711 - FK Rudíkov - Trnava;Platné členství.
+91072038;Mašek;Kamil;1991;6140711 - FK Rudíkov - Trnava;Platné členství.
+73050773;Mejzlík;Josef;1973;6140711 - FK Rudíkov - Trnava;Platné členství.
+85121258;Mikyska;Lukáš;1985;6140711 - FK Rudíkov - Trnava;Platné členství.
+83031100;Mikyska;Miroslav;1983;6140711 - FK Rudíkov - Trnava;Platné členství.
+83020609;Nožička;Lukáš;1983;6140711 - FK Rudíkov - Trnava;Platné členství.
+89040331;Nožička;Petr;1989;6140711 - FK Rudíkov - Trnava;Platné členství.
+92010502;Partl;Zdeněk;1992;6140711 - FK Rudíkov - Trnava;Platné členství.
+95041538;Pažourek;Josef;1995;6140711 - FK Rudíkov - Trnava;Platné členství.
+75101144;Pažourek;Josef;1975;6140711 - FK Rudíkov - Trnava;Platné členství.
+81051295;Pospíšil;Bohumír;1981;6140711 - FK Rudíkov - Trnava;Platné členství.
+95030688;Salák;Jan;1995;6140711 - FK Rudíkov - Trnava;Platné členství.
+75010593;Salák;Milan;1975;6140711 - FK Rudíkov - Trnava;Platné členství.
+99031629;Skryja;Martin;1999;6140711 - FK Rudíkov - Trnava;Platné členství.
+01031419;Skryja;Vít;2001;6140711 - FK Rudíkov - Trnava;Platné členství.
+03071151;Smetana;Tadeáš;2003;6140711 - FK Rudíkov - Trnava;Platné členství.
+01100517;Suk;Daniel;2001;6140711 - FK Rudíkov - Trnava;Platné členství.
+98051787;Šindelář;Josef;1998;6140711 - FK Rudíkov - Trnava;Platné členství.
+98060113;Štefl;Adam;1998;6140711 - FK Rudíkov - Trnava;Platné členství.
+96080654;Štolpa;Ondřej;1996;6140711 - FK Rudíkov - Trnava;Platné členství.
+00010396;Šula;Marek;2000;6140711 - FK Rudíkov - Trnava;Platné členství.
+91051703;Šula;Vladimír;1991;6140711 - FK Rudíkov - Trnava;Platné členství.
+65070205;Šula;Vladimír;1965;6140711 - FK Rudíkov - Trnava;Platné členství.
+01120448;Švec;Jakub;2001;6140711 - FK Rudíkov - Trnava;Platné členství.
+98010634;Švec;Roman;1998;6140711 - FK Rudíkov - Trnava;Platné členství.
+00101081;Trnka;Jan;2000;6140711 - FK Rudíkov - Trnava;Platné členství.
+76100911;Trnka;Jaromír;1976;6140711 - FK Rudíkov - Trnava;Platné členství.
+81080708;Trnka;Lukáš;1981;6140711 - FK Rudíkov - Trnava;Platné členství.
+98060410;Trnka;Pavel;1998;6140711 - FK Rudíkov - Trnava;Platné členství.
+82050452;Trnka;Zbyněk;1982;6140711 - FK Rudíkov - Trnava;Platné členství.
+01050436;Trojan;Josef;2001;6140711 - FK Rudíkov - Trnava;Platné členství.
+75040078;Valeš;Pavel;1975;6140711 - FK Rudíkov - Trnava;Platné členství.
+00121105;Voneš;Jan;2000;6140711 - FK Rudíkov - Trnava;Platné členství.

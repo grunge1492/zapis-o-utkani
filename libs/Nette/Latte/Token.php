@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Latte
  */
+
+namespace Nette\Latte;
+
+use Nette;
 
 
 
@@ -16,36 +19,35 @@
  * Latte parser token.
  *
  * @author     David Grudl
- * @package Nette\Latte
  */
-class NLatteToken extends NObject
+class Token extends Nette\Object
 {
 	const TEXT = 'text',
-		MACRO = 'macro',
-		TAG_BEGIN = 'tag_begin',
-		TAG_END = 'tag_end',
-		ATTRIBUTE = 'attribute',
-		COMMENT = 'comment';
+		MACRO_TAG = 'macroTag', // latte macro tag
+		HTML_TAG_BEGIN = 'htmlTagBegin', // begin of HTML tag or comment
+		HTML_TAG_END = 'htmlTagEnd', // end of HTML tag or comment
+		HTML_ATTRIBUTE = 'htmlAttribute',
+		COMMENT = 'comment'; // latte comment
 
-	/** @var int */
+	/** @var string  token type [TEXT | MACRO_TAG | HTML_TAG_BEGIN | HTML_TAG_END | HTML_ATTRIBUTE | COMMENT] */
 	public $type;
 
-	/** @var string */
+	/** @var string  content of the token */
 	public $text;
 
-	/** @var int */
+	/** @var int  line number */
 	public $line;
 
-	/** @var string  MACRO, TAG_BEGIN, ATTRIBUTE */
+	/** @var string  name of macro tag, HTML tag or attribute; used for types MACRO_TAG, HTML_TAG_BEGIN, HTML_ATTRIBUTE */
 	public $name;
 
-	/** @var string  MACRO, ATTRIBUTE */
+	/** @var string  value of macro tag or HTML attribute; used for types MACRO_TAG, HTML_ATTRIBUTE */
 	public $value;
 
-	/** @var string  MACRO */
+	/** @var string  macro modifiers; used for type MACRO_TAG */
 	public $modifiers;
 
-	/** @var bool  TAG_BEGIN */
+	/** @var bool  is closing HTML tag? used for type HTML_TAG_BEGIN */
 	public $closing;
 
 }

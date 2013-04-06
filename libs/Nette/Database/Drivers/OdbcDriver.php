@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -16,16 +19,15 @@
  * Supplemental ODBC database driver.
  *
  * @author     David Grudl
- * @package Nette\Database\Drivers
  */
-class NOdbcDriver extends NObject implements ISupplementalDriver
+class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
-	/** @var NConnection */
+	/** @var Nette\Database\Connection */
 	private $connection;
 
 
 
-	public function __construct(NConnection $connection, array $options)
+	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 	}
@@ -47,9 +49,19 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 
 
 	/**
+	 * Formats boolean for use in a SQL statement.
+	 */
+	public function formatBool($value)
+	{
+		return $value ? '1' : '0';
+	}
+
+
+
+	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(DateTime $value)
+	public function formatDateTime(\DateTime $value)
 	{
 		return $value->format("#m/d/Y H:i:s#");
 	}
@@ -72,13 +84,12 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 	 */
 	public function applyLimit(&$sql, $limit, $offset)
 	{
-		// offset support is missing
 		if ($limit >= 0) {
 			$sql = 'SELECT TOP ' . (int) $limit . ' * FROM (' . $sql . ')';
 		}
 
 		if ($offset) {
-			throw new InvalidArgumentException('Offset is not implemented in driver odbc.');
+			throw new Nette\InvalidArgumentException('Offset is not implemented in driver odbc.');
 		}
 	}
 
@@ -103,7 +114,7 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getTables()
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -113,7 +124,7 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getColumns($table)
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -123,7 +134,7 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getIndexes($table)
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -133,7 +144,7 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getForeignKeys($table)
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -143,7 +154,7 @@ class NOdbcDriver extends NObject implements ISupplementalDriver
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::META;
+		return $item === self::SUPPORT_COLUMNS_META;
 	}
 
 }

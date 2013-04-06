@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Security
  */
+
+namespace Nette\Security;
+
+use Nette;
 
 
 
@@ -24,10 +27,14 @@
  * @property-read int $logoutReason
  * @property-read array $roles
  * @property   IAuthorizator $authorizator
- * @package Nette\Security
  */
-class NUser extends NObject
+class User extends Nette\Object
 {
+	 /** @deprecated */
+	const MANUAL = IUserStorage::MANUAL,
+		INACTIVITY = IUserStorage::INACTIVITY,
+		BROWSER_CLOSED = IUserStorage::BROWSER_CLOSED;
+
 	/** @var string  default role for unauthenticated user */
 	public $guestRole = 'guest';
 
@@ -49,12 +56,12 @@ class NUser extends NObject
 	/** @var IAuthorizator */
 	private $authorizator;
 
-	/** @var IDIContainer */
+	/** @var Nette\DI\Container */
 	private $context;
 
 
 
-	public function __construct(IUserStorage $storage, IDIContainer $context)
+	public function __construct(IUserStorage $storage, Nette\DI\Container $context)
 	{
 		$this->storage = $storage;
 		$this->context = $context; // with IAuthenticator, IAuthorizator
@@ -81,7 +88,7 @@ class NUser extends NObject
 	 * @param  mixed optional parameter (e.g. username or IIdentity)
 	 * @param  mixed optional parameter (e.g. password)
 	 * @return void
-	 * @throws NAuthenticationException if authentication was not successful
+	 * @throws AuthenticationException if authentication was not successful
 	 */
 	public function login($id = NULL, $password = NULL)
 	{
@@ -104,12 +111,12 @@ class NUser extends NObject
 	 */
 	final public function logout($clearIdentity = FALSE)
 	{
+		if ($this->isLoggedIn()) {
+			$this->onLoggedOut($this);
+			$this->storage->setAuthenticated(FALSE);
+		}
 		if ($clearIdentity) {
 			$this->storage->setIdentity(NULL);
-		}
-		if ($this->isLoggedIn()) {
-			$this->storage->setAuthenticated(FALSE);
-			$this->onLoggedOut($this);
 		}
 	}
 
@@ -151,8 +158,7 @@ class NUser extends NObject
 
 	/**
 	 * Sets authentication handler.
-	 * @param  IAuthenticator
-	 * @return NUser  provides a fluent interface
+	 * @return User  provides a fluent interface
 	 */
 	public function setAuthenticator(IAuthenticator $handler)
 	{
@@ -168,7 +174,7 @@ class NUser extends NObject
 	 */
 	final public function getAuthenticator()
 	{
-		return ($tmp=$this->authenticator) ? $tmp : $this->context->getByType('IAuthenticator');
+		return $this->authenticator ?: $this->context->getByType('Nette\Security\IAuthenticator');
 	}
 
 
@@ -178,7 +184,7 @@ class NUser extends NObject
 	 * @param  string|int|DateTime number of seconds or timestamp
 	 * @param  bool  log out when the browser is closed?
 	 * @param  bool  clear the identity from persistent storage?
-	 * @return NUser  provides a fluent interface
+	 * @return User  provides a fluent interface
 	 */
 	public function setExpiration($time, $whenBrowserIsClosed = TRUE, $clearIdentity = FALSE)
 	{
@@ -255,8 +261,7 @@ class NUser extends NObject
 
 	/**
 	 * Sets authorization handler.
-	 * @param  IAuthorizator
-	 * @return NUser  provides a fluent interface
+	 * @return User  provides a fluent interface
 	 */
 	public function setAuthorizator(IAuthorizator $handler)
 	{
@@ -272,7 +277,7 @@ class NUser extends NObject
 	 */
 	final public function getAuthorizator()
 	{
-		return ($tmp=$this->authorizator) ? $tmp : $this->context->getByType('IAuthorizator');
+		return $this->authorizator ?: $this->context->getByType('Nette\Security\IAuthorizator');
 	}
 
 

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Caching\Storages
  */
+
+namespace Nette\Caching\Storages;
+
+use Nette;
 
 
 
@@ -16,9 +19,8 @@
  * Memory cache storage.
  *
  * @author     David Grudl
- * @package Nette\Caching\Storages
  */
-class NMemoryStorage extends NObject implements ICacheStorage
+class MemoryStorage extends Nette\Object implements Nette\Caching\IStorage
 {
 	/** @var array */
 	private $data = array();
@@ -55,7 +57,7 @@ class NMemoryStorage extends NObject implements ICacheStorage
 	 * @param  array  dependencies
 	 * @return void
 	 */
-	public function write($key, $data, array $dp)
+	public function write($key, $data, array $dependencies)
 	{
 		$this->data[$key] = $data;
 	}
@@ -79,9 +81,9 @@ class NMemoryStorage extends NObject implements ICacheStorage
 	 * @param  array  conditions
 	 * @return void
 	 */
-	public function clean(array $conds)
+	public function clean(array $conditions)
 	{
-		if (!empty($conds[NCache::ALL])) {
+		if (!empty($conditions[Nette\Caching\Cache::ALL])) {
 			$this->data = array();
 		}
 	}

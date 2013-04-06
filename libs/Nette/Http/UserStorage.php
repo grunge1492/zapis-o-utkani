@@ -3,12 +3,16 @@
 /**
  * This file is part of the Nette Framework (http://nette.org)
  *
- * Copyright (c) 2004, 2011 David Grudl (http://davidgrudl.com)
+ * Copyright (c) 2004 David Grudl (http://davidgrudl.com)
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Http
  */
+
+namespace Nette\Http;
+
+use Nette,
+	Nette\Security\IIdentity;
 
 
 
@@ -16,22 +20,21 @@
  * Session storage for user object.
  *
  * @author David Grudl, Jan Tichý
- * @package Nette\Http
  */
-class NUserStorage extends NObject implements IUserStorage
+class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
 {
 	/** @var string */
 	private $namespace = '';
 
-	/** @var NSession */
+	/** @var Session */
 	private $sessionHandler;
 
-	/** @var NSessionSection */
+	/** @var SessionSection */
 	private $sessionSection;
 
 
 
-	public function  __construct(NSession $sessionHandler)
+	public function  __construct(Session $sessionHandler)
 	{
 		$this->sessionHandler = $sessionHandler;
 	}
@@ -41,7 +44,7 @@ class NUserStorage extends NObject implements IUserStorage
 	/**
 	 * Sets the authenticated status of this user.
 	 * @param  bool
-	 * @return NUserStorage Provides a fluent interface
+	 * @return UserStorage Provides a fluent interface
 	 */
 	public function setAuthenticated($state)
 	{
@@ -78,8 +81,7 @@ class NUserStorage extends NObject implements IUserStorage
 
 	/**
 	 * Sets the user identity.
-	 * @param  IIdentity
-	 * @return NUserStorage Provides a fluent interface
+	 * @return UserStorage Provides a fluent interface
 	 */
 	public function setIdentity(IIdentity $identity = NULL)
 	{
@@ -91,7 +93,7 @@ class NUserStorage extends NObject implements IUserStorage
 
 	/**
 	 * Returns current user identity, if any.
-	 * @return IIdentity|NULL
+	 * @return Nette\Security\IIdentity|NULL
 	 */
 	public function getIdentity()
 	{
@@ -104,7 +106,7 @@ class NUserStorage extends NObject implements IUserStorage
 	/**
 	 * Changes namespace; allows more users to share a session.
 	 * @param  string
-	 * @return NUserStorage Provides a fluent interface
+	 * @return UserStorage Provides a fluent interface
 	 */
 	public function setNamespace($namespace)
 	{
@@ -132,13 +134,13 @@ class NUserStorage extends NObject implements IUserStorage
 	 * Enables log out after inactivity.
 	 * @param  string|int|DateTime Number of seconds or timestamp
 	 * @param  int Log out when the browser is closed | Clear the identity from persistent storage?
-	 * @return NUserStorage Provides a fluent interface
+	 * @return UserStorage Provides a fluent interface
 	 */
 	public function setExpiration($time, $flags = 0)
 	{
 		$section = $this->getSessionSection(TRUE);
 		if ($time) {
-			$time = NDateTime53::from($time)->format('U');
+			$time = Nette\DateTime::from($time)->format('U');
 			$section->expireTime = $time;
 			$section->expireDelta = $time - time();
 
@@ -170,7 +172,7 @@ class NUserStorage extends NObject implements IUserStorage
 
 	/**
 	 * Returns and initializes $this->sessionSection.
-	 * @return NSessionSection
+	 * @return SessionSection
 	 */
 	protected function getSessionSection($need)
 	{

@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Forms\Controls
  */
+
+namespace Nette\Forms\Controls;
+
+use Nette;
 
 
 
@@ -16,9 +19,8 @@
  * Select box control that allows multiple item selection.
  *
  * @author     David Grudl
- * @package Nette\Forms\Controls
  */
-class NMultiSelectBox extends NSelectBox
+class MultiSelectBox extends SelectBox
 {
 
 
@@ -28,11 +30,7 @@ class NMultiSelectBox extends NSelectBox
 	 */
 	public function getValue()
 	{
-		$allowed = array_keys($this->allowed);
-		if ($this->getPrompt()) {
-			unset($allowed[0]);
-		}
-		return array_intersect($this->getRawValue(), $allowed);
+		return array_intersect($this->getRawValue(), array_keys($this->allowed));
 	}
 
 
@@ -44,22 +42,17 @@ class NMultiSelectBox extends NSelectBox
 	public function getRawValue()
 	{
 		if (is_scalar($this->value)) {
-			$value = array($this->value);
-
-		} elseif (!is_array($this->value)) {
-			$value = array();
+			return array($this->value);
 
 		} else {
-			$value = $this->value;
-		}
-
-		$res = array();
-		foreach ($value as $val) {
-			if (is_scalar($val)) {
-				$res[] = $val;
+			$res = array();
+			foreach ((array) $this->value as $val) {
+				if (is_scalar($val)) {
+					$res[] = $val;
+				}
 			}
+			return $res;
 		}
-		return $res;
 	}
 
 
@@ -70,16 +63,9 @@ class NMultiSelectBox extends NSelectBox
 	 */
 	public function getSelectedItem()
 	{
-		if (!$this->areKeysUsed()) {
-			return $this->getValue();
-
-		} else {
-			$res = array();
-			foreach ($this->getValue() as $value) {
-				$res[$value] = $this->allowed[$value];
-			}
-			return $res;
-		}
+		return $this->areKeysUsed()
+			? array_intersect_key($this->allowed, array_flip($this->getValue()))
+			: $this->getValue();
 	}
 
 
@@ -97,24 +83,22 @@ class NMultiSelectBox extends NSelectBox
 
 	/**
 	 * Generates control's HTML element.
-	 * @return NHtml
+	 * @return Nette\Utils\Html
 	 */
 	public function getControl()
 	{
-		$control = parent::getControl();
-		$control->multiple = TRUE;
-		return $control;
+		return parent::getControl()->multiple(TRUE);
 	}
 
 
 
 	/**
 	 * Count/length validator.
-	 * @param  NMultiSelectBox
+	 * @param  MultiSelectBox
 	 * @param  array  min and max length pair
 	 * @return bool
 	 */
-	public static function validateLength(NMultiSelectBox $control, $range)
+	public static function validateLength(MultiSelectBox $control, $range)
 	{
 		if (!is_array($range)) {
 			$range = array($range, $range);

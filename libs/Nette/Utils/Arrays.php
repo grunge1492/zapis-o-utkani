@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Utils
  */
+
+namespace Nette\Utils;
+
+use Nette;
 
 
 
@@ -16,9 +19,8 @@
  * Array tools library.
  *
  * @author     David Grudl
- * @package Nette\Utils
  */
-final class NArrays
+final class Arrays
 {
 
 	/**
@@ -26,17 +28,13 @@ final class NArrays
 	 */
 	final public function __construct()
 	{
-		throw new NStaticClassException;
+		throw new Nette\StaticClassException;
 	}
 
 
 
 	/**
-	 * Returns array item or $default if item is not set.
-	 * Example: $val = NArrays::get($arr, 'i', 123);
-	 * @param  mixed  array
-	 * @param  mixed  key
-	 * @param  mixed  default value
+	 * Returns item from array or $default if item is not set.
 	 * @return mixed
 	 */
 	public static function get(array $arr, $key, $default = NULL)
@@ -46,7 +44,7 @@ final class NArrays
 				$arr = $arr[$k];
 			} else {
 				if (func_num_args() < 3) {
-					throw new InvalidArgumentException("Missing item '$k'.");
+					throw new Nette\InvalidArgumentException("Missing item '$k'.");
 				}
 				return $default;
 			}
@@ -58,8 +56,6 @@ final class NArrays
 
 	/**
 	 * Returns reference to array item or $default if item is not set.
-	 * @param  mixed  array
-	 * @param  mixed  key
 	 * @return mixed
 	 */
 	public static function & getRef(& $arr, $key)
@@ -68,7 +64,7 @@ final class NArrays
 			if (is_array($arr) || $arr === NULL) {
 				$arr = & $arr[$k];
 			} else {
-				throw new InvalidArgumentException('Traversed item is not an array.');
+				throw new Nette\InvalidArgumentException('Traversed item is not an array.');
 			}
 		}
 		return $arr;
@@ -78,8 +74,6 @@ final class NArrays
 
 	/**
 	 * Recursively appends elements of remaining keys from the second array to the first.
-	 * @param  array
-	 * @param  array
 	 * @return array
 	 */
 	public static function mergeTree($arr1, $arr2)
@@ -97,8 +91,6 @@ final class NArrays
 
 	/**
 	 * Searches the array for a given key and returns the offset if successful.
-	 * @param  array  input array
-	 * @param  mixed  key
 	 * @return int    offset if it is found, FALSE otherwise
 	 */
 	public static function searchKey($arr, $key)
@@ -111,9 +103,6 @@ final class NArrays
 
 	/**
 	 * Inserts new array before item specified by key.
-	 * @param  array  input array
-	 * @param  mixed  key
-	 * @param  array  inserted array
 	 * @return void
 	 */
 	public static function insertBefore(array &$arr, $key, array $inserted)
@@ -126,9 +115,6 @@ final class NArrays
 
 	/**
 	 * Inserts new array after item specified by key.
-	 * @param  array  input array
-	 * @param  mixed  key
-	 * @param  array  inserted array
 	 * @return void
 	 */
 	public static function insertAfter(array &$arr, $key, array $inserted)
@@ -142,9 +128,6 @@ final class NArrays
 
 	/**
 	 * Renames key in array.
-	 * @param  array
-	 * @param  mixed  old key
-	 * @param  mixed  new key
 	 * @return void
 	 */
 	public static function renameKey(array &$arr, $oldKey, $newKey)
@@ -161,17 +144,18 @@ final class NArrays
 
 	/**
 	 * Returns array entries that match the pattern.
-	 * @param  array
-	 * @param  string
-	 * @param  int
 	 * @return array
 	 */
 	public static function grep(array $arr, $pattern, $flags = 0)
 	{
-		NDebugger::tryError();
+		set_error_handler(function($severity, $message) use ($pattern) { // preg_last_error does not return compile errors
+			restore_error_handler();
+			throw new RegexpException("$message in pattern: $pattern");
+		});
 		$res = preg_grep($pattern, $arr, $flags);
-		if (NDebugger::catchError($e) || preg_last_error()) { // compile error XOR run-time error
-			throw new NRegexpException($e ? $e->getMessage() : NULL, $e ? NULL : preg_last_error(), $pattern);
+		restore_error_handler();
+		if (preg_last_error()) { // run-time error
+			throw new RegexpException(NULL, preg_last_error(), $pattern);
 		}
 		return $res;
 	}
@@ -180,13 +164,12 @@ final class NArrays
 
 	/**
 	 * Returns flattened array.
-	 * @param  array
 	 * @return array
 	 */
 	public static function flatten(array $arr)
 	{
 		$res = array();
-		array_walk_recursive($arr, create_function('$a', 'extract(NCFix::$vars['.NCFix::uses(array('res'=>& $res)).'], EXTR_REFS); $res[] = $a; '));
+		array_walk_recursive($arr, function($a) use (& $res) { $res[] = $a; });
 		return $res;
 	}
 

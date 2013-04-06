@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Mail
  */
+
+namespace Nette\Mail;
+
+use Nette;
 
 
 
@@ -16,16 +19,14 @@
  * Mailer interface.
  *
  * @author     David Grudl
- * @package Nette\Mail
  */
 interface IMailer
 {
 
 	/**
 	 * Sends email.
-	 * @param  NMail
 	 * @return void
 	 */
-	function send(NMail $mail);
+	function send(Message $mail);
 
 }

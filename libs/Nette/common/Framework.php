@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette
  */
+
+namespace Nette;
+
+use Nette;
 
 
 
@@ -16,15 +19,14 @@
  * The Nette Framework (http://nette.org)
  *
  * @author     David Grudl
- * @package Nette
  */
-final class NFramework
+final class Framework
 {
 
 	/** Nette Framework version identification */
 	const NAME = 'Nette Framework',
-		VERSION = '2.0',
-		REVISION = '013c8ee released on 2012-02-03';
+		VERSION = '2.0.10',
+		REVISION = 'c0332ac released on 2013-03-08';
 
 	/** @var bool set to TRUE if your host has disabled function ini_set */
 	public static $iAmUsingBadHost = FALSE;
@@ -36,7 +38,7 @@ final class NFramework
 	 */
 	final public function __construct()
 	{
-		throw new NStaticClassException;
+		throw new StaticClassException;
 	}
 
 }

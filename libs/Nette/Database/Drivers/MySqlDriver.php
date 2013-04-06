@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -16,15 +19,14 @@
  * Supplemental MySQL database driver.
  *
  * @author     David Grudl
- * @package Nette\Database\Drivers
  */
-class NMySqlDriver extends NObject implements ISupplementalDriver
+class MySqlDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
 	const ERROR_ACCESS_DENIED = 1045;
 	const ERROR_DUPLICATE_ENTRY = 1062;
 	const ERROR_DATA_TRUNCATED = 1265;
 
-	/** @var NConnection */
+	/** @var Nette\Database\Connection */
 	private $connection;
 
 
@@ -34,7 +36,7 @@ class NMySqlDriver extends NObject implements ISupplementalDriver
 	 *   - charset => character encoding to set (default is utf8)
 	 *   - sqlmode => see http://dev.mysql.com/doc/refman/5.0/en/server-sql-mode.html
 	 */
-	public function __construct(NConnection $connection, array $options)
+	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 		$charset = isset($options['charset']) ? $options['charset'] : 'utf8';
@@ -65,9 +67,19 @@ class NMySqlDriver extends NObject implements ISupplementalDriver
 
 
 	/**
+	 * Formats boolean for use in a SQL statement.
+	 */
+	public function formatBool($value)
+	{
+		return $value ? '1' : '0';
+	}
+
+
+
+	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(DateTime $value)
+	public function formatDateTime(\DateTime $value)
 	{
 		return $value->format("'Y-m-d H:i:s'");
 	}
@@ -124,7 +136,7 @@ class NMySqlDriver extends NObject implements ISupplementalDriver
 			WHERE TABLE_SCHEMA = DATABASE()
 		");*/
 		$tables = array();
-		foreach ($this->connection->query('SHOW FULL TABLES', PDO::FETCH_NUM) as $row) {
+		foreach ($this->connection->query('SHOW FULL TABLES') as $row) {
 			$tables[] = array(
 				'name' => $row[0],
 				'view' => isset($row[1]) && $row[1] === 'VIEW',
@@ -215,7 +227,7 @@ class NMySqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::META;
+		return $item === self::SUPPORT_COLUMNS_META || $item === self::SUPPORT_SELECT_UNGROUPED_COLUMNS;
 	}
 
 }

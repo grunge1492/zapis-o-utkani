@@ -7,55 +7,55 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Reflection
  */
+
+namespace Nette\Database\Reflection;
+
+use Nette;
 
 
 
 /**
  * Reflection metadata class with discovery for a database.
  *
- * @author     Jakuv Vrana
- * @property-write NConnection $connection
- * @package Nette\Database\Reflection
+ * @author     Jan Skrasek
+ * @property-write Nette\Database\Connection $connection
  */
-class NDiscoveredReflection extends NObject implements IReflection
+class DiscoveredReflection extends Nette\Object implements Nette\Database\IReflection
 {
-	/** @var NCache */
+	/** @var Nette\Caching\Cache */
 	protected $cache;
 
-	/** @var ICacheStorage */
+	/** @var Nette\Caching\IStorage */
 	protected $cacheStorage;
 
-	/** @var NConnection */
+	/** @var Nette\Database\Connection */
 	protected $connection;
 
 	/** @var array */
-	protected $structure = array(
-		'primary' => array(),
-		'hasMany' => array(),
-		'belongsTo' => array(),
-	);
+	protected $structure = array();
+
+	/** @var array */
+	protected $loadedStructure;
 
 
 
 	/**
 	 * Create autodiscovery structure.
-	 * @param  ICacheStorage
 	 */
-	public function __construct(ICacheStorage $storage = NULL)
+	public function __construct(Nette\Caching\IStorage $storage = NULL)
 	{
 		$this->cacheStorage = $storage;
 	}
 
 
 
-	public function setConnection(NConnection $connection)
+	public function setConnection(Nette\Database\Connection $connection)
 	{
 		$this->connection = $connection;
 		if ($this->cacheStorage) {
-			$this->cache = new NCache($this->cacheStorage, 'Nette.Database.' . md5($connection->getDsn()));
-			$this->structure = ($tmp=$this->cache->load('structure')) ? $tmp : $this->structure;
+			$this->cache = new Nette\Caching\Cache($this->cacheStorage, 'Nette.Database.' . md5($connection->getDsn()));
+			$this->structure = $this->loadedStructure = $this->cache->load('structure') ?: $this->structure;
 		}
 	}
 
@@ -63,7 +63,7 @@ class NDiscoveredReflection extends NObject implements IReflection
 
 	public function __destruct()
 	{
-		if ($this->cache) {
+		if ($this->cache && $this->structure !== $this->loadedStructure) {
 			$this->cache->save('structure', $this->structure);
 		}
 	}
@@ -72,22 +72,24 @@ class NDiscoveredReflection extends NObject implements IReflection
 
 	public function getPrimary($table)
 	{
-		$primary = & $this->structure['primary'][$table];
+		$primary = & $this->structure['primary'][strtolower($table)];
 		if (isset($primary)) {
-			return $primary;
+			return empty($primary) ? NULL : $primary;
 		}
 
 		$columns = $this->connection->getSupplementalDriver()->getColumns($table);
-		$primaryCount = 0;
+		$primary = array();
 		foreach ($columns as $column) {
 			if ($column['primary']) {
-				$primary = $column['name'];
-				$primaryCount++;
+				$primary[] = $column['name'];
 			}
 		}
 
-		if ($primaryCount !== 1)
+		if (count($primary) === 0) {
 			return NULL;
+		} elseif (count($primary) === 1) {
+			$primary = reset($primary);
+		}
 
 		return $primary;
 	}
@@ -96,48 +98,67 @@ class NDiscoveredReflection extends NObject implements IReflection
 
 	public function getHasManyReference($table, $key, $refresh = TRUE)
 	{
-		$reference = $this->structure['hasMany'];
-		if (!empty($reference[$table])) {
-			foreach ($reference[$table] as $targetTable => $targetColumn) {
-				if (strpos($targetTable, strtolower($key)) !== FALSE) {
-					return array(
-						$targetTable,
-						$targetColumn,
-					);
+		if (isset($this->structure['hasMany'][strtolower($table)])) {
+			$candidates = $columnCandidates = array();
+			foreach ($this->structure['hasMany'][strtolower($table)] as $targetPair) {
+				list($targetColumn, $targetTable) = $targetPair;
+				if (stripos($targetTable, $key) === FALSE) {
+					continue;
+				}
+
+				$candidates[] = array($targetTable, $targetColumn);
+				if (stripos($targetColumn, $table) !== FALSE) {
+					$columnCandidates[] = $candidate = array($targetTable, $targetColumn);
+					if (strtolower($targetTable) === strtolower($key)) {
+						return $candidate;
+					}
+				}
+			}
+
+			if (count($columnCandidates) === 1) {
+				return reset($columnCandidates);
+			} elseif (count($candidates) === 1) {
+				return reset($candidates);
+			}
+
+			foreach ($candidates as $candidate) {
+				list($targetTable, $targetColumn) = $candidate;
+				if (strtolower($targetTable) === strtolower($key)) {
+					return $candidate;
 				}
 			}
 		}
 
-		if (!$refresh) {
-			throw new PDOException("No reference found for \${$table}->related({$key}).");
+		if ($refresh) {
+			$this->reloadAllForeignKeys();
+			return $this->getHasManyReference($table, $key, FALSE);
 		}
 
-		$this->reloadAllForeignKeys();
-		return $this->getHasManyReference($table, $key, FALSE);
+		if (empty($candidates)) {
+			throw new MissingReferenceException("No reference found for \${$table}->related({$key}).");
+		} else {
+			throw new AmbiguousReferenceKeyException('Ambiguous joining column in related call.');
+		}
 	}
 
 
 
 	public function getBelongsToReference($table, $key, $refresh = TRUE)
 	{
-		$reference = $this->structure['belongsTo'];
-		if (!empty($reference[$table])) {
-			foreach ($reference[$table] as $column => $targetTable) {
-				if (strpos($column, strtolower($key)) !== FALSE) {
-					return array(
-						$targetTable,
-						$column,
-					);
+		if (isset($this->structure['belongsTo'][strtolower($table)])) {
+			foreach ($this->structure['belongsTo'][strtolower($table)] as $column => $targetTable) {
+				if (stripos($column, $key) !== FALSE) {
+					return array($targetTable, $column);
 				}
 			}
 		}
 
-		if (!$refresh) {
-			throw new PDOException("No reference found for \${$table}->{$key}.");
+		if ($refresh) {
+			$this->reloadForeignKeys($table);
+			return $this->getBelongsToReference($table, $key, FALSE);
 		}
 
-		$this->reloadForeignKeys($table);
-		return $this->getBelongsToReference($table, $key, FALSE);
+		throw new MissingReferenceException("No reference found for \${$table}->{$key}.");
 	}
 
 
@@ -150,10 +171,10 @@ class NDiscoveredReflection extends NObject implements IReflection
 			}
 		}
 
-		foreach (array_keys($this->structure['hasMany']) as $table) {
-			uksort($this->structure['hasMany'][$table], create_function('$a, $b', '
+		foreach ($this->structure['hasMany'] as & $table) {
+			uksort($table, function($a, $b) {
 				return strlen($a) - strlen($b);
-			'));
+			});
 		}
 	}
 
@@ -161,22 +182,16 @@ class NDiscoveredReflection extends NObject implements IReflection
 
 	protected function reloadForeignKeys($table)
 	{
-		static $reloaded = array();
-		if (isset($reloaded[$table]))
-			return;
-
 		foreach ($this->connection->getSupplementalDriver()->getForeignKeys($table) as $row) {
-			$this->structure['belongsTo'][$table][strtolower($row['local'])] = $row['table'];
-			$this->structure['hasMany'][strtolower($row['table'])][$table] = $row['local'];
+			$this->structure['belongsTo'][strtolower($table)][$row['local']] = $row['table'];
+			$this->structure['hasMany'][strtolower($row['table'])][$row['local'] . $table] = array($row['local'], $table);
 		}
 
 		if (isset($this->structure['belongsTo'][$table])) {
-			uksort($this->structure['belongsTo'][$table], create_function('$a, $b', '
+			uksort($this->structure['belongsTo'][$table], function($a, $b) {
 				return strlen($a) - strlen($b);
-			'));
+			});
 		}
-
-		$reloaded[$table] = TRUE;
 	}
 
 }

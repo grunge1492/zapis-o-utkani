@@ -339,8 +339,6 @@ class DibiConnection extends DibiObject
 		$this->connected || $this->connect();
 
 		$event = $this->onEvent ? new DibiEvent($this, DibiEvent::QUERY, $sql) : NULL;
-		dibi::$numOfQueries++;
-		dibi::$sql = $sql;
 		try {
 			$res = $this->driver->query($sql);
 
@@ -689,6 +687,10 @@ class DibiConnection extends DibiObject
 				$sql = '';
 				$count++;
 			}
+		}
+		if (trim($sql) !== '') {
+			$this->driver->query($sql);
+			$count++;
 		}
 		fclose($handle);
 		return $count;

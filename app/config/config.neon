@@ -18,22 +18,31 @@ common:
 
 	php:
 		date.timezone: Europe/Prague
-		# session.save_path: "%tempDir%/sessions"
 		# zlib.output_compression: yes
 
 	nette:
-		session:
-			autoStart: smart
+		application:
+			errorPresenter: Error
 
 		database:
-			default:
-				dsn: '%database.driver%:host=%database.host%;dbname=%database.dbname%'
-				user: %database.user%
-				password: %database.password%
+			dsn: '%database.driver%:host=%database.host%;dbname=%database.dbname%'
+			user: %database.user%
+			password: %database.password%
+
+		session:
+			autoStart: smart
+			expiration: 14 days
+
 
 	services:
+		authenticator: Authenticator
+		routerFactory: RouterFactory
+		router: @routerFactory::createRouter
 		database: DibiConnection(%database%)
 		model: Model( @database )
+
+	factories:
+
 
 production < common:
 

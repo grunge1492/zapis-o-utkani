@@ -7,8 +7,12 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Config
  */
+
+namespace Nette\Config;
+
+use Nette,
+	Nette\Caching\Cache;
 
 
 
@@ -17,17 +21,18 @@
  *
  * @author     David Grudl
  *
- * @property   bool $productionMode
+ * @property   bool $debugMode
  * @property-write $tempDirectory
- * @package Nette\Config
  */
-class NConfigurator extends NObject
+class Configurator extends Nette\Object
 {
 	/** config file sections */
-	const DEVELOPMENT = 'development',
-		PRODUCTION = 'production',
-		AUTO = NULL,
+	const AUTO = NULL,
 		NONE = FALSE;
+
+	/** @deprecated */
+	const DEVELOPMENT = 'development',
+		PRODUCTION = 'production';
 
 	/** @var array of function(Configurator $sender, Compiler $compiler); Occurs after the compiler is created */
 	public $onCompile;
@@ -48,13 +53,14 @@ class NConfigurator extends NObject
 
 
 	/**
-	 * Set parameter %productionMode%.
+	 * Set parameter %debugMode%.
 	 * @param  bool|string|array
-	 * @return NConfigurator  provides a fluent interface
+	 * @return Configurator  provides a fluent interface
 	 */
-	public function setProductionMode($value = TRUE)
+	public function setDebugMode($value = TRUE)
 	{
-		$this->parameters['productionMode'] = is_bool($value) ? $value : self::detectProductionMode($value);
+		$this->parameters['debugMode'] = is_bool($value) ? $value : static::detectDebugMode($value);
+		$this->parameters['productionMode'] = !$this->parameters['debugMode']; // compatibility
 		return $this;
 	}
 
@@ -63,22 +69,22 @@ class NConfigurator extends NObject
 	/**
 	 * @return bool
 	 */
-	public function isProductionMode()
+	public function isDebugMode()
 	{
-		return $this->parameters['productionMode'];
+		return !$this->parameters['productionMode'];
 	}
 
 
 
 	/**
 	 * Sets path to temporary directory.
-	 * @return NConfigurator  provides a fluent interface
+	 * @return Configurator  provides a fluent interface
 	 */
 	public function setTempDirectory($path)
 	{
 		$this->parameters['tempDir'] = $path;
 		if (($cacheDir = $this->getCacheDirectory()) && !is_dir($cacheDir)) {
-			mkdir($cacheDir, 0777);
+			mkdir($cacheDir);
 		}
 		return $this;
 	}
@@ -87,11 +93,11 @@ class NConfigurator extends NObject
 
 	/**
 	 * Adds new parameters. The %params% will be expanded.
-	 * @return NConfigurator  provides a fluent interface
+	 * @return Configurator  provides a fluent interface
 	 */
 	public function addParameters(array $params)
 	{
-		$this->parameters = NConfigHelpers::merge($params, $this->parameters);
+		$this->parameters = Helpers::merge($params, $this->parameters);
 		return $this;
 	}
 
@@ -103,15 +109,17 @@ class NConfigurator extends NObject
 	protected function getDefaultParameters()
 	{
 		$trace = debug_backtrace(FALSE);
+		$debugMode = static::detectDebugMode();
 		return array(
 			'appDir' => isset($trace[1]['file']) ? dirname($trace[1]['file']) : NULL,
 			'wwwDir' => isset($_SERVER['SCRIPT_FILENAME']) ? dirname($_SERVER['SCRIPT_FILENAME']) : NULL,
-			'productionMode' => self::detectProductionMode(),
-			'environment' => self::detectProductionMode() ? self::PRODUCTION : self::DEVELOPMENT,
+			'debugMode' => $debugMode,
+			'productionMode' => !$debugMode,
+			'environment' => $debugMode ? 'development' : 'production',
 			'consoleMode' => PHP_SAPI === 'cli',
 			'container' => array(
 				'class' => 'SystemContainer',
-				'parent' => 'NDIContainer',
+				'parent' => 'Nette\DI\Container',
 			)
 		);
 	}
@@ -121,26 +129,26 @@ class NConfigurator extends NObject
 	/**
 	 * @param  string        error log directory
 	 * @param  string        administrator email
-	 * @return NConfigurator  provides a fluent interface
+	 * @return void
 	 */
 	public function enableDebugger($logDirectory = NULL, $email = NULL)
 	{
-		NDebugger::$strictMode = TRUE;
-		NDebugger::enable($this->parameters['productionMode'], $logDirectory, $email);
+		Nette\Diagnostics\Debugger::$strictMode = TRUE;
+		Nette\Diagnostics\Debugger::enable($this->parameters['productionMode'], $logDirectory, $email);
 	}
 
 
 
 	/**
-	 * @return NRobotLoader
+	 * @return Nette\Loaders\RobotLoader
 	 */
 	public function createRobotLoader()
 	{
 		if (!($cacheDir = $this->getCacheDirectory())) {
-			throw new InvalidStateException("Set path to temporary directory using setTempDirectory().");
+			throw new Nette\InvalidStateException("Set path to temporary directory using setTempDirectory().");
 		}
-		$loader = new NRobotLoader;
-		$loader->setCacheStorage(new NFileStorage($cacheDir));
+		$loader = new Nette\Loaders\RobotLoader;
+		$loader->setCacheStorage(new Nette\Caching\Storages\FileStorage($cacheDir));
 		$loader->autoRebuild = !$this->parameters['productionMode'];
 		return $loader;
 	}
@@ -149,11 +157,11 @@ class NConfigurator extends NObject
 
 	/**
 	 * Adds configuration file.
-	 * @return NConfigurator  provides a fluent interface
+	 * @return Configurator  provides a fluent interface
 	 */
-	public function addConfig($file, $section = self::AUTO)
+	public function addConfig($file, $section = NULL)
 	{
-		$this->files[] = array($file, $section === self::AUTO ? $this->parameters['environment'] : $section);
+		$this->files[] = array($file, $section === NULL ? $this->parameters['environment'] : $section);
 		return $this;
 	}
 
@@ -170,33 +178,33 @@ class NConfigurator extends NObject
 
 	/**
 	 * Returns system DI container.
-	 * @return SystemContainer
+	 * @return \SystemContainer
 	 */
 	public function createContainer()
 	{
 		if ($cacheDir = $this->getCacheDirectory()) {
-			$cache = new NCache(new NPhpFileStorage($cacheDir), 'Nette.Configurator');
+			$cache = new Cache(new Nette\Caching\Storages\PhpFileStorage($cacheDir), 'Nette.Configurator');
 			$cacheKey = array($this->parameters, $this->files);
 			$cached = $cache->load($cacheKey);
 			if (!$cached) {
 				$code = $this->buildContainer($dependencies);
 				$cache->save($cacheKey, $code, array(
-					NCache::FILES => $this->parameters['productionMode'] ? NULL : $dependencies,
+					Cache::FILES => $dependencies,
 				));
 				$cached = $cache->load($cacheKey);
 			}
-			NLimitedScope::load($cached['file'], TRUE);
+			Nette\Utils\LimitedScope::load($cached['file'], TRUE);
 
 		} elseif ($this->files) {
-			throw new InvalidStateException("Set path to temporary directory using setTempDirectory().");
+			throw new Nette\InvalidStateException("Set path to temporary directory using setTempDirectory().");
 
 		} else {
-			NLimitedScope::evaluate($this->buildContainer()); // back compatibility with Environment
+			Nette\Utils\LimitedScope::evaluate($this->buildContainer()); // back compatibility with Environment
 		}
 
 		$container = new $this->parameters['container']['class'];
 		$container->initialize();
-		NEnvironment::setContext($container); // back compatibility
+		Nette\Environment::setContext($container); // back compatibility
 		return $container;
 	}
 
@@ -213,7 +221,7 @@ class NConfigurator extends NObject
 		$code = "<?php\n";
 		foreach ($this->files as $tmp) {
 			list($file, $section) = $tmp;
-			$config = NConfigHelpers::merge($loader->load($file, $section), $config);
+			$config = Helpers::merge($loader->load($file, $section), $config);
 			$code .= "// source: $file $section\n";
 		}
 		$code .= "\n";
@@ -223,7 +231,7 @@ class NConfigurator extends NObject
 		if (!isset($config['parameters'])) {
 			$config['parameters'] = array();
 		}
-		$config['parameters'] = NConfigHelpers::merge($config['parameters'], $this->parameters);
+		$config['parameters'] = Helpers::merge($config['parameters'], $this->parameters);
 
 		$compiler = $this->createCompiler();
 		$this->onCompile($this, $compiler);
@@ -233,7 +241,7 @@ class NConfigurator extends NObject
 			$this->parameters['container']['class'],
 			$config['parameters']['container']['parent']
 		);
-		$dependencies = array_merge($loader->getDependencies(), $compiler->getContainerBuilder()->getDependencies());
+		$dependencies = array_merge($loader->getDependencies(), $this->isDebugMode() ? $compiler->getContainerBuilder()->getDependencies() : array());
 		return $code;
 	}
 
@@ -243,14 +251,14 @@ class NConfigurator extends NObject
 	{
 		foreach (array('service' => 'services', 'variable' => 'parameters', 'variables' => 'parameters', 'mode' => 'parameters', 'const' => 'constants') as $old => $new) {
 			if (isset($config[$old])) {
-				throw new DeprecatedException("Section '$old' in configuration file is deprecated; use '$new' instead.");
+				throw new Nette\DeprecatedException("Section '$old' in configuration file is deprecated; use '$new' instead.");
 			}
 		}
 		if (isset($config['services'])) {
 			foreach ($config['services'] as $key => $def) {
 				foreach (array('option' => 'arguments', 'methods' => 'setup') as $old => $new) {
 					if (is_array($def) && isset($def[$old])) {
-						throw new DeprecatedException("Section '$old' in service definition is deprecated; refactor it into '$new'.");
+						throw new Nette\DeprecatedException("Section '$old' in service definition is deprecated; refactor it into '$new'.");
 					}
 				}
 			}
@@ -260,25 +268,25 @@ class NConfigurator extends NObject
 
 
 	/**
-	 * @return NConfigCompiler
+	 * @return Compiler
 	 */
 	protected function createCompiler()
 	{
-		$compiler = new NConfigCompiler;
-		$compiler->addExtension('php', new NPhpExtension)
-			->addExtension('constants', new NConstantsExtension)
-			->addExtension('nette', new NNetteExtension);
+		$compiler = new Compiler;
+		$compiler->addExtension('php', new Extensions\PhpExtension)
+			->addExtension('constants', new Extensions\ConstantsExtension)
+			->addExtension('nette', new Extensions\NetteExtension);
 		return $compiler;
 	}
 
 
 
 	/**
-	 * @return NConfigLoader
+	 * @return Loader
 	 */
 	protected function createLoader()
 	{
-		return new NConfigLoader;
+		return new Loader;
 	}
 
 
@@ -295,16 +303,42 @@ class NConfigurator extends NObject
 
 
 	/**
-	 * Detects production mode by IP address.
+	 * Detects debug mode by IP address.
 	 * @param  string|array  IP addresses or computer names whitelist detection
 	 * @return bool
 	 */
+	public static function detectDebugMode($list = NULL)
+	{
+		$list = is_string($list) ? preg_split('#[,\s]+#', $list) : (array) $list;
+		if (!isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$list[] = '127.0.0.1';
+			$list[] = '::1';
+		}
+		return in_array(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : php_uname('n'), $list, TRUE);
+	}
+
+
+
+	/** @deprecated */
+	public function setProductionMode($value = TRUE)
+	{
+		return $this->setDebugMode(is_bool($value) ? !$value : $value);
+	}
+
+
+
+	/** @deprecated */
+	public function isProductionMode()
+	{
+		return !$this->isDebugMode();
+	}
+
+
+
+	/** @deprecated */
 	public static function detectProductionMode($list = NULL)
 	{
-		$list = is_string($list) ? preg_split('#[,\s]+#', $list) : $list;
-		$list[] = '127.0.0.1';
-		$list[] = '::1';
-		return !in_array(isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : php_uname('n'), $list, TRUE);
+		return !static::detectDebugMode($list);
 	}
 
 }

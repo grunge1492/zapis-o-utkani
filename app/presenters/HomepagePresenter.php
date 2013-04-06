@@ -2,14 +2,13 @@
 
 /**
  * Homepage presenter.
- *
- * @author     John Doe
- * @package    MyApplication
  */
 class HomepagePresenter extends BasePresenter
 {
     public function renderDefault()
     {
+// Debugger::dump("pepa");
+
         $section = $this->session->getSection(BasePresenter::U_MAIN_SESSION_KEY);
 
         if (!empty($section)) {

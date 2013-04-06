@@ -7,8 +7,11 @@
  *
  * For the full copyright and license information, please view
  * the file license.txt that was distributed with this source code.
- * @package Nette\Database\Drivers
  */
+
+namespace Nette\Database\Drivers;
+
+use Nette;
 
 
 
@@ -16,16 +19,15 @@
  * Supplemental MS SQL database driver.
  *
  * @author     David Grudl
- * @package Nette\Database\Drivers
  */
-class NMsSqlDriver extends NObject implements ISupplementalDriver
+class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDriver
 {
-	/** @var NConnection */
+	/** @var Nette\Database\Connection */
 	private $connection;
 
 
 
-	public function __construct(NConnection $connection, array $options)
+	public function __construct(Nette\Database\Connection $connection, array $options)
 	{
 		$this->connection = $connection;
 	}
@@ -48,9 +50,19 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 
 
 	/**
+	 * Formats boolean for use in a SQL statement.
+	 */
+	public function formatBool($value)
+	{
+		return $value ? '1' : '0';
+	}
+
+
+
+	/**
 	 * Formats date-time for use in a SQL statement.
 	 */
-	public function formatDateTime(DateTime $value)
+	public function formatDateTime(\DateTime $value)
 	{
 		return $value->format("'Y-m-d H:i:s'");
 	}
@@ -73,13 +85,12 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function applyLimit(&$sql, $limit, $offset)
 	{
-		// offset support is missing
 		if ($limit >= 0) {
 			$sql = 'SELECT TOP ' . (int) $limit . ' * FROM (' . $sql . ') t';
 		}
 
 		if ($offset) {
-			throw new NotImplementedException('Offset is not implemented.');
+			throw new Nette\NotImplementedException('Offset is not implemented.');
 		}
 	}
 
@@ -104,7 +115,7 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getTables()
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -114,7 +125,7 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getColumns($table)
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -124,7 +135,7 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getIndexes($table)
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -134,7 +145,7 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function getForeignKeys($table)
 	{
-		throw new NNotImplementedException;
+		throw new Nette\NotImplementedException;
 	}
 
 
@@ -144,7 +155,7 @@ class NMsSqlDriver extends NObject implements ISupplementalDriver
 	 */
 	public function isSupported($item)
 	{
-		return $item === self::META;
+		return $item === self::SUPPORT_COLUMNS_META;
 	}
 
 }
